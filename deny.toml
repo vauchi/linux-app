@@ -1,0 +1,99 @@
+# SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# cargo-deny configuration for vauchi-gtk (Linux GTK4 frontend)
+# https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+]
+
+[advisories]
+version = 2
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+ignore = [
+    # paste is unmaintained — transitive via uniffi. No action available.
+    "RUSTSEC-2024-0436",
+]
+
+[licenses]
+version = 2
+allow = [
+    "GPL-3.0-or-later",
+    "AGPL-3.0-or-later",  # vauchi-core, vauchi-relay (#801)
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "MPL-2.0",
+    "CDLA-Permissive-2.0",  # webpki-roots (Mozilla CA certs)
+    "OpenSSL",              # aws-lc-sys (BoringSSL fork, FIPS 140-3)
+    "LGPL-2.1-or-later",   # GTK4 bindings
+    "IJG",                  # libjpeg (image crate, camera feature)
+]
+confidence-threshold = 0.8
+
+[[licenses.clarify]]
+name = "ring"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
+
+[bans]
+multiple-versions = "deny"
+wildcards = "warn"  # git deps (vauchi-core) have no version spec
+highlight = "all"
+workspace-default-features = "allow"
+external-default-features = "allow"
+
+deny = [
+    # No direct openssl usage
+    { name = "openssl", wrappers = ["native-tls"] },
+    { name = "openssl-sys", wrappers = ["native-tls", "openssl"] },
+]
+
+skip = [
+    # ADR-078 D-5: one copy of every vauchi crate (Core, the contract, the
+    # shells) per binary. These third-party crates legitimately appear in
+    # two versions through the GTK and BlueZ trees; any vauchi-* duplicate
+    # still fails.
+    "base64",
+    "bitflags",
+    "darling",
+    "darling_core",
+    "darling_macro",
+    "getrandom",
+    "hashbrown",
+    "linux-raw-sys",
+    "miniz_oxide",
+    "rand_chacha",
+    "rand_core",
+    "rustix",
+    "shlex",
+    "socket2",
+    "syn",
+    "synstructure",
+    "toml",
+    "toml_datetime",
+    "winnow",
+]
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = [
+    "https://gitlab.com/vauchi/core.git",
+    "https://gitlab.com/vauchi/contract.git",
+    "https://gitlab.com/vauchi/linux-hw.git",
+    "https://gitlab.com/vauchi/linux-gtk.git",
+    "https://gitlab.com/vauchi/utils/rqrr.git",
+]

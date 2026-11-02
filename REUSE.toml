@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+version = 1
+SPDX-PackageName = "vauchi-linux-app"
+SPDX-PackageSupplier = "Mattia Egloff <mattia.egloff@pm.me>"
+
+[[annotations]]
+path = ["LICENSES/**"]
+SPDX-FileCopyrightText = "Free Software Foundation"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = ["**/Cargo.lock", ".gitignore", "supply-chain/**"]
+SPDX-FileCopyrightText = "2026 Mattia Egloff <mattia.egloff@pm.me>"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
