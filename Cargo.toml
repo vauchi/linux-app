@@ -11,6 +11,11 @@ repository = "https://gitlab.com/vauchi/linux-app"
 description = "The Linux app: Core, the linux-hw hardware shell and the GTK display shell (ADR-078)"
 publish = false
 
+[features]
+# NFC over PC/SC needs libpcsclite on the build host; off by default, as in
+# the GTK shell's own gvauchi.
+nfc = ["vauchi-linux-hw/nfc", "gtk-display/nfc"]
+
 [lib]
 path = "src/lib.rs"
 
@@ -22,7 +27,7 @@ path = "src/bin/gvauchi.rs"
 # Core, the hardware shell and the display shell all on contract v0.96.2
 # (ADR-078 decision 6); deny.toml refuses a second copy of any of them (D-5).
 vauchi-core = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.97.0", version = "=0.97.0" }
-vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.97.1", version = "=0.97.1", features = ["nfc", "audio", "camera"] }
+vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.97.1", version = "=0.97.1", features = ["audio", "camera"] }
 # The GTK display shell; its repository is still `linux-gtk` and its crate
 # `vauchi-gtk` until the rename (ADR-078 step 4). Pinned to the branch of
 # linux-gtk!292 until that merges and is tagged.
