@@ -59,6 +59,8 @@ install -m 644 data/fonts/*.ttf %{buildroot}%{_datadir}/fonts/vauchi/
 %{_datadir}/applications/app.vauchi.Vauchi.desktop
 %{_datadir}/dbus-1/services/app.vauchi.Vauchi.service
 %{_datadir}/metainfo/app.vauchi.Vauchi.metainfo.xml
+%{_datadir}/icons/hicolor/scalable/apps/app.vauchi.Vauchi.svg
+%{_datadir}/fonts/vauchi/
 
 %changelog
 * Tue Nov 03 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.8.0-1
