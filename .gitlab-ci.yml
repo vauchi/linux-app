@@ -13,6 +13,8 @@ include:
       - '/ci-templates/security.yml'
       - '/ci-templates/mr-rules.yml'
       - '/ci-templates/reuse.yml'
+      - '/ci-templates/content-fetch.yml'
+      - '/ci-templates/vrt-upload.yml'
 
 variables:
   VAUCHI_SCRIPTS_REF: "ci-templates-v2026.11.02"
@@ -62,10 +64,12 @@ build:gvauchi:
   before_script:
     - !reference [.self-hosted, before_script]
   script:
-    - cargo build --release --bin gvauchi
+    - cargo build --release --bins
   artifacts:
     paths:
       - target/release/gvauchi
+      - target/release/seed-identity
+      - target/release/render_catalog
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -91,6 +95,108 @@ test:a11y:
   script:
     - chmod +x tests/atspi/run-tests.sh
     - tests/atspi/run-tests.sh -v --tb=short
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Visual snapshots of gvauchi's destinations and onboarding, uploaded to
+# the Visual Regression Tracker as platform "linux-app" (owner,
+# 2026-11-03: its own baselines while linux-gtk still uploads "linux-gtk";
+# ADR-078 step 4d.4, copy first).
+test:snapshots:
+  allow_failure: true
+  stage: test
+  needs:
+    - job: build:gvauchi
+  tags: [linux, self-hosted]
+  resource_group: gtk-xvfb
+  variables:
+    VRT_PLATFORM: linux-app
+    VRT_SCREENSHOT_DIR: tests/atspi/snapshots/baseline
+  script:
+    - chmod +x tests/atspi/run-tests.sh
+    - mkdir -p tests/atspi/snapshots/{baseline,actual,diff}
+    - tests/atspi/run-tests.sh -v --tb=short -k "test_snapshots"
+  after_script:
+    - !reference [.vrt-upload-script, script]
+  artifacts:
+    when: always
+    paths:
+      - tests/atspi/snapshots/baseline/
+      - tests/atspi/snapshots/actual/
+      - tests/atspi/snapshots/diff/
+    expire_in: 30 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Manual snapshot regeneration: Run pipeline with REGENERATE_SNAPSHOTS=1.
+test:snapshots:record:
+  stage: test
+  needs:
+    - job: build:gvauchi
+  tags: [linux, self-hosted]
+  resource_group: gtk-xvfb
+  variables:
+    UPDATE_SNAPSHOTS: "1"
+  script:
+    - chmod +x tests/atspi/run-tests.sh
+    - tests/atspi/run-tests.sh -v --tb=short -k "test_snapshots"
+  artifacts:
+    when: always
+    paths:
+      - tests/atspi/snapshots/baseline/
+    expire_in: 90 days
+  rules:
+    - if: $REGENERATE_SNAPSHOTS == "1"
+      when: manual
+
+# Every screen of Core's contract catalog rendered with linux-app's engine
+# and gtk-display's renderer, uploaded as platform "linux-app".
+test:screen-catalog:
+  stage: test
+  needs:
+    - job: build:gvauchi
+  tags: [linux, self-hosted]
+  resource_group: gtk-xvfb
+  variables:
+    VRT_PLATFORM: linux-app
+    VRT_SCREENSHOT_DIR: build/screen-catalog
+    CATALOG_OUT_DIR: build/screen-catalog
+    # The light variant needs a light theme; Core from a cargo git checkout
+    # compiles in only the default dark one, so the renderer reads the
+    # catalog `.clone-themes` generates from the sibling repo.
+    VAUCHI_THEMES_JSON: ../themes/generated/themes.json
+  before_script:
+    - !reference [.self-hosted, before_script]
+    - !reference [.clone-themes, before_script]
+  script:
+    - mkdir -p "$CATALOG_OUT_DIR" build
+    - |
+      curl --fail-with-body --silent --show-error \
+        --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        "${CI_API_V4_URL}/projects/vauchi%2Fcontract/repository/files/ci%2Ffetch-screen-catalog.py/raw?ref=5ff7c6fe7240a69c2a5b901f5f62745ee5626b5a" \
+        -o build/fetch-screen-catalog.py
+      python3 build/fetch-screen-catalog.py build/screen_catalog_v1.json
+    - |
+      chmod +x target/release/render_catalog
+      # Cairo renderer (no DRI3 under Xvfb), a private display, a fresh
+      # session bus — the recipe tests/atspi/run-tests.sh uses.
+      env GSK_RENDERER=cairo LIBGL_ALWAYS_SOFTWARE=1 GDK_BACKEND=x11 XDG_CURRENT_DESKTOP=none \
+        xvfb-run -a -s '-screen 0 980x1480x24' \
+        dbus-run-session -- target/release/render_catalog build/screen_catalog_v1.json "$CATALOG_OUT_DIR" 900 1400
+      count=$(find "$CATALOG_OUT_DIR" -name '*.png' | wc -l | tr -d ' ')
+      echo "rendered $count PNG(s)"
+      [ "$count" -gt 0 ]
+  after_script:
+    - !reference [.vrt-upload-script, script]
+  artifacts:
+    when: always
+    paths:
+      - build/screen_catalog_v1.json
+      - build/screen_catalog_v1.provenance.json
+      - build/screen-catalog/
+    expire_in: 30 days
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
