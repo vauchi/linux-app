@@ -3729,8 +3729,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-gtk"
-version = "0.6.0"
-source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.6.0#7b47d36605e3507ec636ab5369cd2529db63b166"
+version = "0.7.0"
+source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.7.0#1ae884ff5def6eb6fb8a3606ed6df0884ee272fe"
 dependencies = [
  "bluer",
  "glib-build-tools",
@@ -3751,6 +3751,10 @@ dependencies = [
 name = "vauchi-linux-app"
 version = "0.1.0"
 dependencies = [
+ "gtk4",
+ "tempfile",
+ "vauchi-app",
+ "vauchi-contract",
  "vauchi-core",
  "vauchi-gtk",
  "vauchi-linux-hw",
