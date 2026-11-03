@@ -3729,8 +3729,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-gtk"
-version = "0.7.3"
-source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.7.3#f7726c665db9645979682358da7cf5c5af4fca3b"
+version = "0.8.0"
+source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.8.0#df4320de641dfe463ca97bc61581a44e51d394c5"
 dependencies = [
  "bluer",
  "glib-build-tools",
