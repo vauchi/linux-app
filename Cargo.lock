@@ -3730,7 +3730,7 @@ dependencies = [
 [[package]]
 name = "vauchi-gtk"
 version = "0.5.0-rc.0"
-source = "git+https://gitlab.com/vauchi/linux-gtk.git?branch=feature%2Frun-with-hardware#eb84694812aea901dd2fe06a158ced772691eb15"
+source = "git+https://gitlab.com/vauchi/linux-gtk.git?rev=eb84694812aea901dd2fe06a158ced772691eb15#eb84694812aea901dd2fe06a158ced772691eb15"
 dependencies = [
  "bluer",
  "glib-build-tools",

@@ -29,9 +29,9 @@ path = "src/bin/gvauchi.rs"
 vauchi-core = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.97.0", version = "=0.97.0" }
 vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.97.1", version = "=0.97.1", features = ["audio", "camera"] }
 # The GTK display shell; its repository is still `linux-gtk` and its crate
-# `vauchi-gtk` until the rename (ADR-078 step 4). Pinned to the branch of
-# linux-gtk!292 until that merges and is tagged.
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", branch = "feature/run-with-hardware" }
+# `vauchi-gtk` until the rename (ADR-078 step 4). Pinned to the main commit
+# that carries linux-gtk!292 until linux-gtk cuts a release tag.
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", rev = "eb84694812aea901dd2fe06a158ced772691eb15" }
 
 # rqrr 0.11.0 with the clamped Perspective::map (vauchi/utils/rqrr). A
 # [patch] applies only in the workspace that declares it, so this binary
