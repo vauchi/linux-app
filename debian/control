@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+Source: gvauchi
+Section: net
+Priority: optional
+Maintainer: Mattia Egloff <mattia.egloff@pm.me>
+Build-Depends: debhelper-compat (= 13),
+               cargo,
+               rustc,
+               libgtk-4-dev,
+               libasound2-dev,
+               libdbus-1-dev,
+               libclang-dev,
+               libadwaita-1-dev,
+               libqrencode-dev,
+               libfontconfig1-dev,
+               libglib2.0-dev-bin,
+               pkg-config
+Standards-Version: 4.6.2
+Homepage: https://vauchi.app
+Vcs-Git: https://gitlab.com/vauchi/linux-app.git
+Vcs-Browser: https://gitlab.com/vauchi/linux-app
+Rules-Requires-Root: no
+
+Package: gvauchi
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Replaces: vauchi-gtk
+Breaks: vauchi-gtk
+Provides: vauchi-gtk
+Description: Privacy-focused updatable contact cards (GTK desktop)
+ Vauchi lets you exchange updatable contact cards in person.
+ End-to-end encrypted and decentralized. This package provides
+ gvauchi, the native Linux desktop client built with GTK4 and
+ libadwaita. It replaces the vauchi-gtk package.

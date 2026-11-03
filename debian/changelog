@@ -1,0 +1,7 @@
+gvauchi (0.8.0-1) unstable; urgency=medium
+
+  * First gvauchi package, built from linux-app: it replaces vauchi-gtk
+    (last released as 0.7.3) and installs the app icon (ADR-078 step 4d.5,
+    private#1029).
+
+ -- Mattia Egloff <mattia.egloff@pm.me>  Tue, 03 Nov 2026 16:46:11 +0100

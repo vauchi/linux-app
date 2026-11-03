@@ -6,7 +6,7 @@
 
 include:
   - project: 'vauchi/scripts'
-    ref: ci-templates-v2026.11.02
+    ref: 6f3f3ce7227b015d40cd03d44a78583d039b28ec
     file:
       - '/ci-templates/rust-base.yml'
       - '/ci-templates/release.yml'
@@ -15,9 +15,10 @@ include:
       - '/ci-templates/reuse.yml'
       - '/ci-templates/content-fetch.yml'
       - '/ci-templates/vrt-upload.yml'
+      - '/ci-templates/tool-install.yml'
 
 variables:
-  VAUCHI_SCRIPTS_REF: "ci-templates-v2026.11.02"
+  VAUCHI_SCRIPTS_REF: "6f3f3ce7227b015d40cd03d44a78583d039b28ec"
   # Same advisory as linux-gtk: paste unmaintained, reached through nokhwa.
   AUDIT_IGNORES: "--ignore RUSTSEC-2024-0436"
 
@@ -27,6 +28,7 @@ stages:
   - build
   - test
   - security
+  - package
 
 # A version bump merged to main is the release: the job pushes
 # v<Cargo.toml version> when that tag does not exist yet, so the tag always
@@ -74,6 +76,9 @@ build:gvauchi:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    # A release tag builds too: the package jobs pack this job's gvauchi
+    # (linux-gtk v0.6.1 shipped no package for want of it).
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
 
 # AT-SPI tests that drive gvauchi with a real engine under Xvfb (ADR-078
 # step 4d.4): copied from linux-gtk's test:a11y, which goes in 4d.6 (copy
@@ -220,3 +225,101 @@ security:deny:
 
 security:vet:
   extends: [.linux-runner-readonly, .security-vet-job]
+
+# Packages (ADR-078 step 4d.5, owner 2026-11-03): gvauchi replaces the
+# vauchi-gtk packages linux-gtk built. A version bump merged to main tags the
+# release (auto-tag:version), and the tag pipeline builds these.
+package:deb:
+  stage: package
+  # The official image carries the toolchain rust-toolchain.toml pins
+  # (Debian's own rustc is far older). Trixie, not bookworm: the crates need
+  # gtk4 >= 4.10 and libadwaita >= 1.4; bookworm has 4.8 and 1.2.
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.93.1-trixie
+  tags: [docker]
+  needs:
+    - job: build:gvauchi
+      optional: true
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq devscripts debhelper
+        libgtk-4-dev libadwaita-1-dev libqrencode-dev pkg-config
+        libasound2-dev libdbus-1-dev libclang-dev libfontconfig1-dev
+  script:
+    # -d: debian/control's Build-Depends name Debian's cargo and rustc,
+    # which this image replaces with the pinned toolchain.
+    - dpkg-buildpackage -us -uc -b -d
+    - mkdir -p deb-out && cp ../*.deb deb-out/
+  artifacts:
+    paths:
+      - deb-out/*.deb
+    expire_in: 30 days
+  rules:
+    - if: $CI_COMMIT_TAG
+    - when: manual
+      allow_failure: true
+
+package:rpm:
+  stage: package
+  # Fedora 40 is end of life and its rust (1.86) is below what the crates
+  # need; Fedora 43's updates carry 1.99.
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/fedora:43
+  tags: [docker]
+  needs:
+    - job: build:gvauchi
+      optional: true
+  before_script:
+    - dnf install -y rpm-build cargo rust gtk4-devel libadwaita-devel
+        qrencode-devel pkgconfig alsa-lib-devel dbus-devel clang-devel
+        fontconfig-devel
+  script:
+    - mkdir -p rpmbuild/{SOURCES,SPECS}
+    # The tarball follows Cargo.toml; a spec Version that disagrees fails
+    # rpmbuild, which is the check that both moved.
+    - VERSION=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)
+    - tar czf "rpmbuild/SOURCES/gvauchi-${VERSION}.tar.gz"
+        --transform "s,^,gvauchi-${VERSION}/," --exclude=rpmbuild .
+    - cp packaging/gvauchi.spec rpmbuild/SPECS/
+    - rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/gvauchi.spec
+    - mkdir -p rpm-out && cp rpmbuild/RPMS/**/*.rpm rpm-out/
+  artifacts:
+    paths:
+      - rpm-out/*.rpm
+    expire_in: 30 days
+  rules:
+    - if: $CI_COMMIT_TAG
+    - when: manual
+      allow_failure: true
+
+package:appimage:
+  extends: .install-linuxdeploy
+  stage: package
+  tags: [linux, self-hosted]
+  # optional like package:deb/package:rpm: on MRs this job is always
+  # present (manual) but build:app only fires on rust/atspi/ci changes,
+  # so a hard need made non-code MRs un-creatable ("needs 'build:app'
+  # job, but 'build:app' does not exist in the pipeline").
+  needs:
+    - job: build:gvauchi
+      optional: true
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+  variables:
+    DEPLOY_GTK_VERSION: "4"
+  script:
+    # A manual MR run has no tag; it packages the manifest's version.
+    - VERSION="${CI_COMMIT_TAG:-}"
+    - VERSION="${VERSION#v}"
+    - VERSION="${VERSION:-$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)}"
+    - chmod +x packaging/appimage.sh
+    - ./packaging/appimage.sh "$VERSION"
+  artifacts:
+    paths:
+      - "gvauchi-*-x86_64.AppImage"
+    expire_in: 1 week
+
+# ============================================================
+# Deploy Stage — Badge Pages
+# ============================================================
