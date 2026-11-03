@@ -5,6 +5,8 @@
 [default.extend-words]
 # typos splits "PNGs" (plural of PNG) into "PN" + "Gs" and flags "PN".
 PN = "PN"
+# "wdth" is the OpenType width axis tag in the variable font file names.
+wdth = "wdth"
 
 [files]
 extend-exclude = [
