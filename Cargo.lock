@@ -928,7 +928,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2832,7 +2832,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3271,7 +3271,7 @@ dependencies = [
  "getrandom 0.4.3",
  "once_cell",
  "rustix 1.1.6",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3653,8 +3653,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-app"
-version = "0.97.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.97.0#966c24248cd966a200fe8551c9e1937aef13761d"
+version = "0.98.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.98.0#280513238236005ae634ba936b0ebcd17cda3fa8"
 dependencies = [
  "base64 0.22.1",
  "flate2",
@@ -3685,8 +3685,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-core"
-version = "0.97.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.97.0#966c24248cd966a200fe8551c9e1937aef13761d"
+version = "0.98.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.98.0#280513238236005ae634ba936b0ebcd17cda3fa8"
 dependencies = [
  "argon2",
  "base64 0.22.1",
@@ -3729,8 +3729,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-gtk"
-version = "0.7.0"
-source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.7.0#1ae884ff5def6eb6fb8a3606ed6df0884ee272fe"
+version = "0.7.1"
+source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.7.1#3ff1d4189469e5df30ec7ecfb2254e3236308aad"
 dependencies = [
  "bluer",
  "glib-build-tools",
@@ -3782,8 +3782,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-protocol"
-version = "0.97.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.97.0#966c24248cd966a200fe8551c9e1937aef13761d"
+version = "0.98.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.98.0#280513238236005ae634ba936b0ebcd17cda3fa8"
 dependencies = [
  "serde",
  "serde_json",
