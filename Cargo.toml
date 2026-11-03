@@ -37,7 +37,7 @@ libadwaita = { version = "0.7", features = ["v1_4"] }
 vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.97.1", version = "=0.97.1", features = ["audio", "camera"] }
 # The GTK display shell; its repository is still `linux-gtk` and its crate
 # `vauchi-gtk` until the rename (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.7.1", version = "=0.7.1" }
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.7.3", version = "=0.7.3" }
 
 # Renders Core's screen catalog to PNGs for test:screen-catalog. A test
 # tool, not app wiring, so it lives outside src/ and lint:no-behaviour.
