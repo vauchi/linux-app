@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+[default.extend-words]
+# typos splits "PNGs" (plural of PNG) into "PN" + "Gs" and flags "PN".
+PN = "PN"
+
 [files]
 extend-exclude = [
     "supply-chain/",  # cargo-vet managed: crate names are not typos

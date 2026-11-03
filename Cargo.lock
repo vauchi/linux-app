@@ -3752,6 +3752,7 @@ name = "vauchi-linux-app"
 version = "0.1.0"
 dependencies = [
  "gtk4",
+ "libadwaita",
  "tempfile",
  "vauchi-app",
  "vauchi-contract",
