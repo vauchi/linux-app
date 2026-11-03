@@ -3729,8 +3729,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-gtk"
-version = "0.5.0-rc.0"
-source = "git+https://gitlab.com/vauchi/linux-gtk.git?rev=eb84694812aea901dd2fe06a158ced772691eb15#eb84694812aea901dd2fe06a158ced772691eb15"
+version = "0.6.0"
+source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.6.0#7b47d36605e3507ec636ab5369cd2529db63b166"
 dependencies = [
  "bluer",
  "glib-build-tools",
@@ -3741,6 +3741,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "vauchi-app",
+ "vauchi-contract",
  "vauchi-core",
  "vauchi-linux-hw",
  "yeslogic-fontconfig-sys",
