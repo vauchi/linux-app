@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! The one wiring module (ADR-078 item 3, D-13): starts linux-hw's
 //! hardware shell and hands it to the display shell. Matching on a
 //! `Command` or an `Event` is display or hardware work and belongs in a

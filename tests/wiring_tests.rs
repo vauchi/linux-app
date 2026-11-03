@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! linux-app owns the hardware shell (ADR-078 step 3b): the hardware it
 //! hands the GTK display shell reports the host's capabilities first, and
 //! takes the commands linux-hw ports.

@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! The camera path decodes with rqrr, whose only crash guard is the clamped
 //! `Perspective::map` of the fork in `vauchi/utils/rqrr`. A `[patch]`
 //! applies only in the workspace that declares it; this binary's lock must

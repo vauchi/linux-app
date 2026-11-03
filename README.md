@@ -1,5 +1,5 @@
 <!-- SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me> -->
-<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 
 # linux-app
 
@@ -23,5 +23,6 @@ else. Every crate in a binary pins the same contract tag, and
 cargo run --bin gvauchi
 ```
 
-GPL-3.0-or-later display shell, AGPL-3.0-or-later Core and hardware
-shell: the binary is AGPL-3.0-or-later.
+This repository is GPL-3.0-or-later, like the GTK display shell. Core
+and the hardware shell are AGPL-3.0-or-later, so a gvauchi binary, which
+links them, is distributed under AGPL-3.0-or-later.

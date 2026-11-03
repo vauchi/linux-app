@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 [package]
 name = "vauchi-linux-app"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.93"
-license = "AGPL-3.0-or-later"
+license = "GPL-3.0-or-later"
 repository = "https://gitlab.com/vauchi/linux-app"
 description = "The Linux app: Core, the linux-hw hardware shell and the GTK display shell (ADR-078)"
 publish = false
