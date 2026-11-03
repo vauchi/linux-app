@@ -5,3 +5,14 @@
 # CI writes a JUnit report for GitLab's test view.
 [profile.ci.junit]
 path = "junit.xml"
+
+# Each render_catalog test starts its own `xvfb-run -a`, which picks a display
+# by scanning lock files before Xvfb takes one, so concurrent runs pick the
+# same display. Debian's script retries on the next number; Arch's does not,
+# and its `kill` of the lost server then fails the test (as in linux-gtk).
+[test-groups]
+xvfb = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'binary(render_catalog_test)'
+test-group = 'xvfb'

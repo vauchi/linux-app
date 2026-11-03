@@ -48,6 +48,8 @@ path = "tools/render_catalog.rs"
 [dev-dependencies]
 # The storage tests' throwaway data directories.
 tempfile = "3.0"
+# The render_catalog tests write catalog JSON for the tool to read.
+serde_json = "1"
 
 # rqrr 0.11.0 with the clamped Perspective::map (vauchi/utils/rqrr). A
 # [patch] applies only in the workspace that declares it, so this binary

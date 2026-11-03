@@ -3753,6 +3753,7 @@ version = "0.8.1"
 dependencies = [
  "gtk4",
  "libadwaita",
+ "serde_json",
  "tempfile",
  "vauchi-app",
  "vauchi-contract",
