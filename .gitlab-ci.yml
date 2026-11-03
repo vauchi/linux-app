@@ -71,6 +71,30 @@ build:gvauchi:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+# AT-SPI tests that drive gvauchi with a real engine under Xvfb (ADR-078
+# step 4d.4): copied from linux-gtk's test:a11y, which goes in 4d.6 (copy
+# first, delete last). The renderer-only tests (render_fixture) stay in
+# linux-gtk. run-tests.sh takes a free display (xvfb-run -a); the resource
+# group keeps this repo's Xvfb jobs off the shared runner one at a time.
+test:a11y:
+  stage: test
+  needs:
+    - job: build:gvauchi
+  tags: [linux, self-hosted]
+  resource_group: gtk-xvfb
+  retry:
+    max: 2
+    when:
+      - script_failure
+      - stuck_or_timeout_failure
+      - runner_system_failure
+  script:
+    - chmod +x tests/atspi/run-tests.sh
+    - tests/atspi/run-tests.sh -v --tb=short
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 test:unit:
   extends: [.linux-runner, .timeout-cold-rebuild]
   stage: test

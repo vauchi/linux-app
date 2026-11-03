@@ -2,3 +2,5 @@
 # The CI runner keeps its cargo cache inside the checkout; REUSE skips
 # what git ignores.
 /.cargo/
+__pycache__/
+.ruff_cache/
