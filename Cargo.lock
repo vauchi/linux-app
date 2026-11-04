@@ -3653,8 +3653,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-app"
-version = "0.98.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.98.0#280513238236005ae634ba936b0ebcd17cda3fa8"
+version = "0.99.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.99.0#870ea056fcd024e4714baaaffceb4d89cb6396a2"
 dependencies = [
  "base64 0.22.1",
  "flate2",
@@ -3674,8 +3674,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-contract"
-version = "0.96.2"
-source = "git+https://gitlab.com/vauchi/contract.git?tag=v0.96.2#1f6c1b971bef1edb6fffab21c0bbdaa6664729fa"
+version = "0.97.0"
+source = "git+https://gitlab.com/vauchi/contract.git?tag=v0.97.0#92f88c707a914f18ec68aeae6c63e90760a29c4e"
 dependencies = [
  "serde",
  "serde_json",
@@ -3685,8 +3685,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-core"
-version = "0.98.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.98.0#280513238236005ae634ba936b0ebcd17cda3fa8"
+version = "0.99.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.99.0#870ea056fcd024e4714baaaffceb4d89cb6396a2"
 dependencies = [
  "argon2",
  "base64 0.22.1",
@@ -3729,8 +3729,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-gtk"
-version = "0.8.0"
-source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.8.0#df4320de641dfe463ca97bc61581a44e51d394c5"
+version = "0.8.2"
+source = "git+https://gitlab.com/vauchi/linux-gtk.git?tag=v0.8.2#3af84c67769863c465cd82e3b521eeaf4ca10e78"
 dependencies = [
  "bluer",
  "glib-build-tools",
@@ -3764,8 +3764,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-linux-hw"
-version = "0.97.1"
-source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.97.1#59611287297c509f86957eb7475e9e78fcd5c2da"
+version = "0.98.0"
+source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.98.0#db2b1d8390ced7e26f2e4fb2f4ecc19d03da870a"
 dependencies = [
  "alsa",
  "futures-util",
@@ -3784,8 +3784,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-protocol"
-version = "0.98.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.98.0#280513238236005ae634ba936b0ebcd17cda3fa8"
+version = "0.99.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.99.0#870ea056fcd024e4714baaaffceb4d89cb6396a2"
 dependencies = [
  "serde",
  "serde_json",
