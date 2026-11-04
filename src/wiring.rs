@@ -5,14 +5,15 @@
 //! Matching on a `Command` or an `Event` is display or hardware work and
 //! belongs in a shell, never here; `lint:no-behaviour` fails the build
 //! when either appears outside this file.
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use gtk_display::core_ui::engine_link::EngineHandle;
-use gtk_display::core_ui::hardware_link::StartedHardware;
-use gtk_display::platform::linux_hardware_link::LinuxHardwareLink;
+use gtk_display::core_ui::hardware_link::{HardwareLink, StartedHardware};
 use gtk4::gio;
 use gtk4::prelude::*;
 use vauchi_app::ui::AppEngine;
+use vauchi_contract::Command;
 use vauchi_core::Event;
 use vauchi_core::settings::NetworkCost;
 use vauchi_linux_hw::{Backends, HostDevices, LinuxHardware};
@@ -128,4 +129,56 @@ pub fn start_hardware_with(backends: Backends, devices: HostDevices) -> Option<S
 /// Core a report came from (ADR-078 item 7).
 pub fn core_version() -> &'static str {
     vauchi_core::VERSION
+}
+
+struct LinuxHardwareLink(RefCell<LinuxHardware>);
+
+impl LinuxHardwareLink {
+    fn new(hardware: LinuxHardware) -> Self {
+        Self(RefCell::new(hardware))
+    }
+
+    /// The capabilities to report to Core once, at start.
+    fn report(&self) -> Event {
+        self.0.borrow().report()
+    }
+}
+
+/// The commands linux-hw has a port for (`HardwareShell::execute`).
+fn ported(command: &Command) -> bool {
+    matches!(
+        command,
+        Command::BleStartScanning { .. }
+            | Command::BleStopScanning
+            | Command::BleStartAdvertising { .. }
+            | Command::BleStopAdvertising
+            | Command::BleConnect { .. }
+            | Command::BleWriteCharacteristic { .. }
+            | Command::BleReadCharacteristic { .. }
+            | Command::BleDisconnect { .. }
+            | Command::NfcActivate { .. }
+            | Command::NfcSendApdu { .. }
+            | Command::NfcDeactivate
+            | Command::AudioEmitChallenge { .. }
+            | Command::AudioListenForResponse { .. }
+            | Command::AudioStop
+            | Command::CameraCapture { .. }
+            | Command::CameraStop { .. }
+            | Command::DirectSend { .. }
+    )
+}
+
+impl HardwareLink for LinuxHardwareLink {
+    fn execute(&self, command: &Command) -> bool {
+        if !ported(command) {
+            return false;
+        }
+        // A port without a device answers Unsupported: report nothing.
+        let _ = self.0.borrow_mut().execute(command.clone());
+        true
+    }
+
+    fn pop(&self) -> Option<Event> {
+        self.0.borrow_mut().pop()
+    }
 }
