@@ -1,15 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
 // SPDX-License-Identifier: GPL-3.0-or-later
-//! Core's engine as the display shell's [`EngineLink`] (ADR-078 step
-//! 4d.4). A newtype, not `RefCell<AppEngine>` itself: neither the trait
-//! nor `AppEngine` is local to this crate (orphan rule).
+//! Shared Core adapter with an optional GTK EngineLink implementation.
 use std::cell::RefCell;
 use std::sync::mpsc::Receiver;
 
 use vauchi_app::ui::AppEngine;
 use vauchi_contract::{Command, Event};
-
-use gtk_display::core_ui::engine_link::EngineLink;
 
 pub struct CoreEngine {
     engine: RefCell<AppEngine>,
@@ -24,10 +20,8 @@ impl CoreEngine {
             invalidations,
         }
     }
-}
 
-impl EngineLink for CoreEngine {
-    fn dispatch(&self, event: Event) -> Vec<Command> {
+    pub fn dispatch(&self, event: Event) -> Vec<Command> {
         let outcome = self.engine.borrow_mut().dispatch(event);
         outcome.unwrap_or_else(|error| {
             // The kind only: a rejection's Display text can echo user input.
@@ -36,14 +30,29 @@ impl EngineLink for CoreEngine {
         })
     }
 
-    fn initial_commands(&self) -> Vec<Command> {
+    pub fn initial_commands(&self) -> Vec<Command> {
         self.engine
             .borrow_mut()
             .initial_commands()
             .unwrap_or_default()
     }
 
-    fn take_invalidation(&self) -> bool {
+    pub fn take_invalidation(&self) -> bool {
         self.invalidations.try_recv().is_ok()
+    }
+}
+
+#[cfg(feature = "gtk")]
+impl gtk_display::core_ui::engine_link::EngineLink for CoreEngine {
+    fn dispatch(&self, event: Event) -> Vec<Command> {
+        self.dispatch(event)
+    }
+
+    fn initial_commands(&self) -> Vec<Command> {
+        self.initial_commands()
+    }
+
+    fn take_invalidation(&self) -> bool {
+        self.take_invalidation()
     }
 }

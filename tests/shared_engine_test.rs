@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use vauchi_app::ui::AppEngine;
-use vauchi_contract::{Command, Event};
+use vauchi_contract::Event;
 use vauchi_core::{api::Vauchi, settings::NetworkCost};
 use vauchi_linux_app::engine::CoreEngine;
 
@@ -10,19 +10,16 @@ use vauchi_linux_app::engine::CoreEngine;
 #[test]
 fn shared_engine_forwards_initial_commands_and_platform_observations() {
     let engine = CoreEngine::new(AppEngine::new(Vauchi::in_memory().unwrap()));
-    let commands = engine.initial_commands();
-    assert_eq!(commands[0].variant_name(), "ReplaceSurface");
-    assert_eq!(
-        commands
-            .iter()
-            .filter(|c| matches!(c, Command::SetContextBar { .. }))
-            .count(),
-        1
+    let mut reference = AppEngine::new(Vauchi::in_memory().unwrap());
+    assert!(
+        engine.initial_commands() == reference.initial_commands().unwrap(),
+        "the shared adapter must return Core's complete initial batch"
     );
-    assert_eq!(
-        engine.dispatch(Event::NetworkCostChanged {
-            cost: NetworkCost::Metered
-        }),
-        vec![]
+    let event = Event::NetworkCostChanged {
+        cost: NetworkCost::Metered,
+    };
+    assert!(
+        engine.dispatch(event.clone()) == reference.dispatch(event).unwrap(),
+        "the shared adapter must return Core's complete observation response"
     );
 }

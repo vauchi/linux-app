@@ -5,26 +5,33 @@
 //! Matching on a `Command` or an `Event` is display or hardware work and
 //! belongs in a shell, never here; `lint:no-behaviour` fails the build
 //! when either appears outside this file.
-use std::cell::RefCell;
-use std::rc::Rc;
-
+#[cfg(feature = "gtk")]
 use gtk_display::core_ui::engine_link::EngineHandle;
+#[cfg(feature = "gtk")]
 use gtk_display::core_ui::hardware_link::{HardwareLink, StartedHardware};
+#[cfg(feature = "gtk")]
 use gtk4::gio;
+#[cfg(feature = "gtk")]
 use gtk4::prelude::*;
+#[cfg(feature = "gtk")]
+use std::{cell::RefCell, rc::Rc};
 use vauchi_app::ui::AppEngine;
+#[cfg(feature = "gtk")]
 use vauchi_contract::Command;
+#[cfg(feature = "gtk")]
 use vauchi_core::Event;
 use vauchi_core::settings::NetworkCost;
+#[cfg(feature = "gtk")]
 use vauchi_linux_hw::{Backends, HostDevices, LinuxHardware};
 
 use crate::engine::CoreEngine;
 
-/// Core's engine for the window: storage, the test identity if asked, the
-/// system locale, content updates, then the network-cost watcher.
-pub fn start_engine() -> EngineHandle {
-    let mut vauchi = crate::storage::init_vauchi().expect("Failed to initialize Vauchi backend");
-    maybe_seed_test_identity(&mut vauchi);
+/// Shared storage, optional test identity, locale report and Core bootstrap.
+pub fn start_shared_engine(
+    reset_for_testing: bool,
+) -> Result<CoreEngine, Box<dyn std::error::Error>> {
+    let mut vauchi = crate::storage::init_vauchi()?;
+    maybe_seed_test_identity(&mut vauchi, reset_for_testing);
     let mut app_engine = AppEngine::new(vauchi);
     crate::locale::report_system_locale(&mut app_engine, |name| std::env::var(name).ok());
     // CDN languages, themes and social networks: Core runs the update cycle
@@ -40,7 +47,15 @@ pub fn start_engine() -> EngineHandle {
         app_engine.start_content_updates(&data_dir, vauchi_app::ui::ContentRunOptions::default());
     }
     app_engine.bootstrap();
-    let engine: EngineHandle = Rc::new(CoreEngine::new(app_engine));
+    Ok(CoreEngine::new(app_engine))
+}
+
+#[cfg(feature = "gtk")]
+pub fn start_engine() -> EngineHandle {
+    let engine: EngineHandle = Rc::new(
+        start_shared_engine(gtk_display::shell::reset_for_testing_requested())
+            .expect("Failed to initialize Vauchi backend"),
+    );
     watch_network_cost(&engine);
     engine
 }
@@ -49,8 +64,7 @@ pub fn start_engine() -> EngineHandle {
 ///
 /// Triggered by the `--reset-for-testing` flag (the shell strips it before
 /// GTK's parser) or `VAUCHI_TEST_SEED=1`, which CI's AT-SPI harness sets.
-fn maybe_seed_test_identity(vauchi: &mut vauchi_core::api::Vauchi) {
-    let cli_flag = gtk_display::shell::reset_for_testing_requested();
+fn maybe_seed_test_identity(vauchi: &mut vauchi_core::api::Vauchi, cli_flag: bool) {
     let env_flag = std::env::var("VAUCHI_TEST_SEED").as_deref() == Ok("1");
     if !cli_flag && !env_flag {
         return;
@@ -82,6 +96,7 @@ pub fn network_cost(monitor_type: &str, available: bool, metered: bool) -> Netwo
 
 /// Reports what the network costs now and whenever it changes, so Core can
 /// hold "Wi-Fi only" content updates back on a metered one. Core decides.
+#[cfg(feature = "gtk")]
 fn watch_network_cost(engine: &EngineHandle) {
     let monitor = gio::NetworkMonitor::default();
     report_network_cost(engine, &monitor);
@@ -91,6 +106,7 @@ fn watch_network_cost(engine: &EngineHandle) {
     monitor.connect_network_metered_notify(move |monitor| report_network_cost(&metered, monitor));
 }
 
+#[cfg(feature = "gtk")]
 fn report_network_cost(engine: &EngineHandle, monitor: &gio::NetworkMonitor) {
     let cost = network_cost(
         monitor.type_().name(),
@@ -102,6 +118,7 @@ fn report_network_cost(engine: &EngineHandle, monitor: &gio::NetworkMonitor) {
 }
 
 /// The host's hardware: probe the devices, attach a port per device.
+#[cfg(feature = "gtk")]
 pub fn start_hardware() -> Option<StartedHardware> {
     let devices = HostDevices::probe();
     start_hardware_with(Backends::host(&devices), devices)
@@ -109,6 +126,7 @@ pub fn start_hardware() -> Option<StartedHardware> {
 
 /// The hardware shell over the given backends; `None` when its runtime
 /// cannot start, and the display shell then keeps every command.
+#[cfg(feature = "gtk")]
 pub fn start_hardware_with(backends: Backends, devices: HostDevices) -> Option<StartedHardware> {
     let hardware = match LinuxHardware::with_backends(backends, devices) {
         Ok(hardware) => hardware,
@@ -131,8 +149,10 @@ pub fn core_version() -> &'static str {
     vauchi_core::VERSION
 }
 
+#[cfg(feature = "gtk")]
 struct LinuxHardwareLink(RefCell<LinuxHardware>);
 
+#[cfg(feature = "gtk")]
 impl LinuxHardwareLink {
     fn new(hardware: LinuxHardware) -> Self {
         Self(RefCell::new(hardware))
@@ -145,6 +165,7 @@ impl LinuxHardwareLink {
 }
 
 /// The commands linux-hw has a port for (`HardwareShell::execute`).
+#[cfg(feature = "gtk")]
 fn ported(command: &Command) -> bool {
     matches!(
         command,
@@ -168,6 +189,7 @@ fn ported(command: &Command) -> bool {
     )
 }
 
+#[cfg(feature = "gtk")]
 impl HardwareLink for LinuxHardwareLink {
     fn execute(&self, command: &Command) -> bool {
         if !ported(command) {

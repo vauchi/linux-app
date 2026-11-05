@@ -12,6 +12,8 @@ description = "The Linux app: Core, the linux-hw hardware shell and the GTK disp
 publish = false
 
 [features]
+default = ["gtk"]
+gtk = ["dep:gtk4", "dep:libadwaita", "dep:gtk-display"]
 # NFC over PC/SC needs libpcsclite on the build host; off by default.
 nfc = ["vauchi-linux-hw/nfc"]
 
@@ -21,6 +23,7 @@ path = "src/lib.rs"
 [[bin]]
 name = "gvauchi"
 path = "src/bin/gvauchi.rs"
+required-features = ["gtk"]
 
 [dependencies]
 # Core, the hardware shell and the display shell all on contract v0.97.2
@@ -30,19 +33,36 @@ vauchi-app = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.99.1", vers
 vauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.97.2", version = "^0.97" }
 # gio's NetworkMonitor for the network-cost report; the same gtk4 the
 # display shell links (deny.toml refuses a second copy).
-gtk4 = "0.9"
+gtk4 = { version = "0.9", optional = true }
 # The catalog renderer's window chrome; the version gtk-display links.
-libadwaita = { version = "0.7", features = ["v1_4"] }
+libadwaita = { version = "0.7", features = ["v1_4"], optional = true }
 vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.99.1", version = "=0.99.1", features = ["audio", "camera", "mdns"] }
 # The GTK display shell; its repository is still `linux-gtk` and its crate
 # `vauchi-gtk` until the rename (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.10.0", version = "=0.10.0" }
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.10.0", version = "=0.10.0", optional = true }
 
 # Renders Core's screen catalog to PNGs for test:screen-catalog. A test
 # tool, not app wiring, so it lives outside src/ and lint:no-behaviour.
 [[bin]]
 name = "render_catalog"
 path = "tools/render_catalog.rs"
+required-features = ["gtk"]
+
+[[test]]
+name = "smoke_test"
+required-features = ["gtk"]
+
+[[test]]
+name = "hardware_routing_test"
+required-features = ["gtk"]
+
+[[test]]
+name = "wiring_tests"
+required-features = ["gtk"]
+
+[[test]]
+name = "render_catalog_test"
+required-features = ["gtk"]
 
 [dev-dependencies]
 # The storage tests' throwaway data directories.

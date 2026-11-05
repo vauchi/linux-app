@@ -226,6 +226,19 @@ test:unit:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+test:shared:
+  extends: [.linux-runner, .timeout-cold-rebuild]
+  stage: test
+  before_script:
+    - !reference [.self-hosted, before_script]
+  script:
+    - bash ci/tests/headless-dependencies.test.sh
+    - cargo test --locked --no-default-features --lib --test shared_engine_test
+    - cargo check --locked --no-default-features --all-targets
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 security:audit:
   extends: [.linux-runner-readonly, .security-audit-job]
 
