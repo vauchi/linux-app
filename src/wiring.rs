@@ -16,15 +16,79 @@ use gtk4::prelude::*;
 #[cfg(feature = "gtk")]
 use std::{cell::RefCell, rc::Rc};
 use vauchi_app::ui::AppEngine;
-#[cfg(feature = "gtk")]
-use vauchi_contract::Command;
-#[cfg(feature = "gtk")]
-use vauchi_core::Event;
+use vauchi_contract::{Command, CommandTarget, Event};
 use vauchi_core::settings::NetworkCost;
 #[cfg(feature = "gtk")]
-use vauchi_linux_hw::{Backends, HostDevices, LinuxHardware};
+use vauchi_linux_hw::{Backends, HostDevices};
+use vauchi_linux_hw::{ExecuteError, LinuxHardware};
 
+use crate::engine::CommandEngine;
 use crate::engine::CoreEngine;
+
+/// App-side command routing and observation forwarding, independent of a display.
+pub struct HardwareBridge<E = CoreEngine> {
+    engine: E,
+    hardware: LinuxHardware,
+    commands: Vec<Command>,
+}
+
+impl<E: CommandEngine> HardwareBridge<E> {
+    pub fn new(engine: E, hardware: LinuxHardware) -> Result<Self, ExecuteError> {
+        let mut bridge = Self {
+            engine,
+            hardware,
+            commands: Vec::new(),
+        };
+        let capabilities = bridge.hardware.report();
+        bridge.dispatch(capabilities)?;
+        bridge.route(bridge.engine.initial_commands())?;
+        Ok(bridge)
+    }
+
+    pub fn dispatch(&mut self, event: Event) -> Result<(), ExecuteError> {
+        self.route(self.engine.dispatch(event))
+    }
+
+    pub fn take_commands(&mut self) -> Vec<Command> {
+        std::mem::take(&mut self.commands)
+    }
+
+    /// Process one ready observation, leaving input scheduling to the host.
+    pub fn poll(&mut self) -> Result<bool, ExecuteError> {
+        match self.hardware.pop() {
+            Some(event) => {
+                self.dispatch(event)?;
+                Ok(true)
+            }
+            None => Ok(false),
+        }
+    }
+
+    /// Wait for an observation while the host has no input to forward.
+    pub fn wait_for_event(&mut self, timeout: std::time::Duration) -> Result<bool, ExecuteError> {
+        match self.hardware.wait_for_event(timeout) {
+            Some(event) => {
+                self.dispatch(event)?;
+                Ok(true)
+            }
+            None => Ok(false),
+        }
+    }
+
+    fn route(&mut self, commands: Vec<Command>) -> Result<(), ExecuteError> {
+        for command in commands {
+            if command.target() == CommandTarget::Hardware {
+                match self.hardware.execute(command) {
+                    Ok(()) | Err(ExecuteError::Unsupported) => {}
+                    Err(error) => return Err(error),
+                }
+            } else {
+                self.commands.push(command);
+            }
+        }
+        Ok(())
+    }
+}
 
 /// Shared storage, optional test identity, locale report and Core bootstrap.
 pub fn start_shared_engine(

@@ -7,6 +7,12 @@ use std::sync::mpsc::Receiver;
 use vauchi_app::ui::AppEngine;
 use vauchi_contract::{Command, Event};
 
+/// Core's command/event boundary, supplied to the app's hardware bridge.
+pub trait CommandEngine {
+    fn dispatch(&self, event: Event) -> Vec<Command>;
+    fn initial_commands(&self) -> Vec<Command>;
+}
+
 pub struct CoreEngine {
     engine: RefCell<AppEngine>,
     invalidations: Receiver<()>,
@@ -54,5 +60,15 @@ impl gtk_display::core_ui::engine_link::EngineLink for CoreEngine {
 
     fn take_invalidation(&self) -> bool {
         self.take_invalidation()
+    }
+}
+
+impl CommandEngine for CoreEngine {
+    fn dispatch(&self, event: Event) -> Vec<Command> {
+        CoreEngine::dispatch(self, event)
+    }
+
+    fn initial_commands(&self) -> Vec<Command> {
+        CoreEngine::initial_commands(self)
     }
 }
