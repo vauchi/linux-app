@@ -264,6 +264,8 @@ package:deb:
     expire_in: 30 days
   rules:
     - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: [debian/**/*]
     - when: manual
       allow_failure: true
 
@@ -296,6 +298,8 @@ package:rpm:
     expire_in: 30 days
   rules:
     - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: [packaging/gvauchi.spec]
     - when: manual
       allow_failure: true
 
