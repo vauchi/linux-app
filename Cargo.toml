@@ -3,7 +3,7 @@
 
 [package]
 name = "vauchi-linux-app"
-version = "0.9.0"
+version = "0.10.0"
 edition = "2024"
 rust-version = "1.93"
 license = "GPL-3.0-or-later"
@@ -12,9 +12,8 @@ description = "The Linux app: Core, the linux-hw hardware shell and the GTK disp
 publish = false
 
 [features]
-# NFC over PC/SC needs libpcsclite on the build host; off by default, as in
-# the GTK shell's own gvauchi.
-nfc = ["vauchi-linux-hw/nfc", "gtk-display/nfc"]
+# NFC over PC/SC needs libpcsclite on the build host; off by default.
+nfc = ["vauchi-linux-hw/nfc"]
 
 [lib]
 path = "src/lib.rs"
@@ -37,7 +36,7 @@ libadwaita = { version = "0.7", features = ["v1_4"] }
 vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.99.1", version = "=0.99.1", features = ["audio", "camera", "mdns"] }
 # The GTK display shell; its repository is still `linux-gtk` and its crate
 # `vauchi-gtk` until the rename (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.9.0", version = "=0.9.0" }
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.10.0", version = "=0.10.0" }
 
 # Renders Core's screen catalog to PNGs for test:screen-catalog. A test
 # tool, not app wiring, so it lives outside src/ and lint:no-behaviour.
