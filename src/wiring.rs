@@ -76,17 +76,20 @@ impl<E: CommandEngine> HardwareBridge<E> {
     }
 
     fn route(&mut self, commands: Vec<Command>) -> Result<(), ExecuteError> {
+        let mut failure = None;
         for command in commands {
             if command.target() == CommandTarget::Hardware {
                 match self.hardware.execute(command) {
                     Ok(()) | Err(ExecuteError::Unsupported) => {}
-                    Err(error) => return Err(error),
+                    Err(error) => {
+                        failure.get_or_insert(error);
+                    }
                 }
             } else {
                 self.commands.push(command);
             }
         }
-        Ok(())
+        failure.map_or(Ok(()), Err)
     }
 }
 

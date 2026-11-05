@@ -233,7 +233,7 @@ test:shared:
     - !reference [.self-hosted, before_script]
   script:
     - bash ci/tests/headless-dependencies.test.sh
-    - cargo test --locked --no-default-features --lib --test shared_engine_test
+    - cargo test --locked --no-default-features --lib --test shared_engine_test --test hardware_bridge_test
     - cargo check --locked --no-default-features --all-targets
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
