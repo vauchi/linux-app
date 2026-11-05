@@ -158,11 +158,14 @@ fn hardware_delivery_errors_reach_the_host() {
     let (sent, _received) = mpsc::channel();
     let engine = engine(
         vec![],
-        vec![Command::DirectSend {
-            payload: vec![],
-            is_initiator: true,
-            endpoint: DirectEndpoint::default(),
-        }],
+        vec![
+            Command::DirectSend {
+                payload: vec![],
+                is_initiator: true,
+                endpoint: DirectEndpoint::default(),
+            },
+            Command::PerformNativeBack,
+        ],
     );
     let hardware = hardware(Backends {
         direct: Some(Arc::new(Direct(sent))),
@@ -173,5 +176,5 @@ fn hardware_delivery_errors_reach_the_host() {
         bridge.dispatch(Event::WakeupFired),
         Err(ExecuteError::Delivery(DeliveryError::PayloadTooLarge))
     );
-    assert_eq!(bridge.take_commands(), vec![]);
+    assert_eq!(bridge.take_commands(), vec![Command::PerformNativeBack]);
 }
