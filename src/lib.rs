@@ -8,3 +8,8 @@ pub mod engine;
 pub mod locale;
 pub mod storage;
 pub mod wiring;
+
+#[cfg(feature = "cli")]
+pub use vauchi_cli_display as cli_display;
+#[cfg(feature = "tui")]
+pub use vauchi_tui_display as tui_display;

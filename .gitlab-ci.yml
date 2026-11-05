@@ -233,8 +233,14 @@ test:shared:
     - !reference [.self-hosted, before_script]
   script:
     - bash ci/tests/headless-dependencies.test.sh
+    - bash ci/tests/headless-dependencies.test.sh cli
+    - bash ci/tests/headless-dependencies.test.sh tui
+    - bash ci/tests/headless-dependencies.test.sh cli,tui
+    - if bash ci/tests/headless-dependencies.test.sh gtk; then echo "FAIL — graph guard accepted GTK"; exit 1; fi
     - cargo test --locked --no-default-features --lib --test shared_engine_test --test hardware_bridge_test --test hardware_bridge_lifecycle_test
     - cargo check --locked --no-default-features --all-targets
+    - cargo test --locked --no-default-features --features cli,tui --all-targets
+    - cargo clippy --locked --no-default-features --features cli,tui --all-targets -- -D warnings
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

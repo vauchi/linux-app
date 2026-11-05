@@ -95,5 +95,7 @@ allow-git = [
     "https://gitlab.com/vauchi/contract.git",
     "https://gitlab.com/vauchi/linux-hw.git",
     "https://gitlab.com/vauchi/linux-gtk.git",
+    "https://gitlab.com/vauchi/cli.git",
+    "https://gitlab.com/vauchi/tui.git",
     "https://gitlab.com/vauchi/utils/rqrr.git",
 ]
