@@ -128,14 +128,33 @@ fn hardware_observations_reach_core_without_waiting_for_input() {
 // @internal — a platform input is forwarded unchanged before executing its reply.
 #[test]
 fn input_events_and_display_replies_are_forwarded_unchanged() {
-    let engine = engine(vec![], vec![Command::PerformNativeBack]);
-    let events = engine.events.clone();
+    use vauchi_app::ui::AppEngine;
+    use vauchi_contract::CommandTarget;
+    use vauchi_core::{api::Vauchi, settings::NetworkCost};
+    use vauchi_linux_app::engine::CoreEngine;
+
+    let mut reference = AppEngine::new(Vauchi::in_memory().unwrap());
+    let engine = CoreEngine::new(AppEngine::new(Vauchi::in_memory().unwrap()));
     let hardware = hardware(Backends::default());
-    let report = hardware.report();
+    let mut expected = reference.dispatch(hardware.report()).unwrap();
+    expected.extend(reference.initial_commands().unwrap());
+    expected.retain(|command| command.target() == CommandTarget::Display);
     let mut bridge = HardwareBridge::new(engine, hardware).unwrap();
-    bridge.dispatch(Event::WakeupFired).unwrap();
-    assert_eq!(*events.borrow(), vec![report, Event::WakeupFired]);
-    assert_eq!(bridge.take_commands(), vec![Command::PerformNativeBack]);
+    assert!(
+        bridge.take_commands() == expected,
+        "startup changed Core's command batches"
+    );
+
+    let event = Event::NetworkCostChanged {
+        cost: NetworkCost::Metered,
+    };
+    let mut expected = reference.dispatch(event.clone()).unwrap();
+    expected.retain(|command| command.target() == CommandTarget::Display);
+    bridge.dispatch(event).unwrap();
+    assert!(
+        bridge.take_commands() == expected,
+        "input changed Core's display response"
+    );
 }
 
 // @internal — linux-hw owns support decisions; unsupported ports emit no event.
