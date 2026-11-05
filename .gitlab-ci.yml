@@ -35,6 +35,15 @@ stages:
 # sits on the merged commit (private#1045).
 auto-tag:version:
   extends: .auto-tag
+  needs: [check:release-versions]
+
+check:release-versions:
+  stage: .pre
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/alpine:3.21
+  tags: [docker]
+  script:
+    - sh ci/tests/release-versions.test.sh
+    - sh ci/check-release-versions.sh
 
 lint:format:
   extends: [.linux-runner, .lint-format, .validation-rust, .timeout-quick]

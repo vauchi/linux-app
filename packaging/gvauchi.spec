@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 Name:           gvauchi
-Version:        0.8.1
+Version:        0.10.1
 Release:        1%{?dist}
 Summary:        Privacy-focused updatable contact cards (GTK desktop)
 
@@ -63,6 +63,9 @@ install -m 644 data/fonts/*.ttf %{buildroot}%{_datadir}/fonts/vauchi/
 %{_datadir}/fonts/vauchi/
 
 %changelog
+* Thu Nov 05 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.10.1-1
+- Align package metadata with the app and consume GTK v0.10.0
+
 * Tue Nov 03 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.8.1-1
 - The RPM lists the icon and fonts it installs (private#1029)
 
