@@ -72,7 +72,7 @@ impl<E: CommandEngine> HardwareBridge<E> {
     /// Repaints are checked before waiting and after a timeout; the host
     /// chooses a bounded timeout to keep background updates responsive.
     pub fn wait_for_event(&mut self, timeout: std::time::Duration) -> Result<bool, ExecuteError> {
-        if self.refresh_presentation()? {
+        if self.poll()? {
             return Ok(true);
         }
         match self.hardware.wait_for_event(timeout) {

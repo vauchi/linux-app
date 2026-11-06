@@ -19,10 +19,12 @@ use vauchi_linux_hw::{Backends, HostDevices, LinuxHardware};
 struct Engine {
     invalidated: Rc<Cell<bool>>,
     batches: RefCell<VecDeque<Vec<Command>>>,
+    events: Rc<RefCell<Vec<Event>>>,
 }
 
 impl CommandEngine for Engine {
-    fn dispatch(&self, _: Event) -> Vec<Command> {
+    fn dispatch(&self, event: Event) -> Vec<Command> {
+        self.events.borrow_mut().push(event);
         Vec::new()
     }
     fn initial_commands(&self) -> Vec<Command> {
@@ -37,6 +39,7 @@ fn bridge() -> (HardwareBridge<Engine>, Rc<Cell<bool>>) {
     let invalidated = Rc::new(Cell::new(true));
     let engine = Engine {
         invalidated: invalidated.clone(),
+        events: Rc::default(),
         batches: RefCell::new(VecDeque::from([
             vec![],
             vec![Command::PerformNativeBack],
@@ -94,4 +97,76 @@ fn core_trait_forwards_and_consumes_the_initial_invalidation() {
     let engine = CoreEngine::new(AppEngine::new(Vauchi::in_memory().unwrap()));
     assert!(CommandEngine::take_invalidation(&engine));
     assert!(!CoreEngine::take_invalidation(&engine));
+}
+
+struct ReadyDiscovery(std::sync::mpsc::Sender<()>);
+
+impl vauchi_linux_hw::Discovery for ReadyDiscovery {
+    fn scan(
+        &self,
+        _: String,
+        mut events: vauchi_linux_hw::EventSender,
+    ) -> std::pin::Pin<
+        Box<
+            dyn std::future::Future<Output = Result<(), vauchi_linux_hw::HardwareFailure>>
+                + Send
+                + '_,
+        >,
+    > {
+        Box::pin(async move {
+            events
+                .send(Event::HardwareError {
+                    transport: "BLE".into(),
+                    error: "ready observation".into(),
+                })
+                .await
+                .unwrap();
+            self.0.send(()).unwrap();
+            std::future::pending().await
+        })
+    }
+}
+
+fn hardware_with_ready_observation() -> LinuxHardware {
+    use std::sync::Arc;
+
+    let (sent, received) = std::sync::mpsc::channel();
+    let mut hardware = LinuxHardware::with_backends(
+        Backends {
+            discovery: Some(Arc::new(ReadyDiscovery(sent))),
+            ..Backends::default()
+        },
+        HostDevices::default(),
+    )
+    .unwrap();
+    hardware
+        .execute(Command::BleStartScanning {
+            service_uuid: "test-service".into(),
+        })
+        .unwrap();
+    received.recv_timeout(Duration::from_secs(5)).unwrap();
+    hardware
+}
+
+// @internal — continuous repaints must not starve already-ready hardware observations.
+#[test]
+fn waiting_processes_ready_hardware_even_when_a_repaint_is_pending() {
+    let invalidated = Rc::new(Cell::new(true));
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let engine = Engine {
+        invalidated: invalidated.clone(),
+        events: events.clone(),
+        batches: RefCell::default(),
+    };
+    let mut bridge = HardwareBridge::new(engine, hardware_with_ready_observation()).unwrap();
+    events.borrow_mut().clear();
+    invalidated.set(true);
+    assert!(bridge.wait_for_event(Duration::ZERO).unwrap());
+    assert_eq!(
+        *events.borrow(),
+        vec![Event::HardwareError {
+            transport: "BLE".into(),
+            error: "ready observation".into(),
+        }]
+    );
 }
