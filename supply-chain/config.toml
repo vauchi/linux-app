@@ -1131,6 +1131,10 @@ criteria = "safe-to-deploy"
 version = "0.1.2"
 criteria = "safe-to-deploy"
 
+[[exemptions.ratatui-crossterm]]
+version = "0.1.2"
+criteria = "safe-to-deploy"
+
 [[exemptions.ratatui-widgets]]
 version = "0.3.2"
 criteria = "safe-to-deploy"

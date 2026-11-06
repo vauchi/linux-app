@@ -1,0 +1,102 @@
+// SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#![cfg(feature = "tui")]
+
+use crossterm::event::{Event as NativeEvent, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use ratatui_core::{backend::TestBackend, terminal::Terminal};
+use std::{collections::VecDeque, io, ops::ControlFlow, time::Duration};
+use vauchi_contract::Command;
+use vauchi_linux_app::{
+    terminal::TerminalIo,
+    terminal_tui::{TerminalEvents, TuiTerminal},
+};
+
+struct Keys(VecDeque<Option<NativeEvent>>);
+impl TerminalEvents for Keys {
+    fn next(&mut self, timeout: Duration) -> io::Result<Option<NativeEvent>> {
+        assert_eq!(timeout, Duration::from_millis(50));
+        Ok(self.0.pop_front().expect("unexpected input wait"))
+    }
+}
+
+fn commands() -> Vec<Command> {
+    let fixture: serde_json::Value =
+        serde_json::from_str(vauchi_contract::fixtures::presentation_contract_v1_json()).unwrap();
+    serde_json::from_value(fixture["initial_commands"].clone()).unwrap()
+}
+
+// @internal — the released display must render real command batches through the host's terminal adapter.
+#[test]
+fn command_batches_render_into_the_native_terminal_buffer() {
+    let mut output = Terminal::new(TestBackend::new(100, 35)).unwrap();
+    let mut host = TuiTerminal::new(&mut output, Keys(VecDeque::new()), |effects, _| {
+        assert_eq!(effects, &[]);
+        Ok(())
+    });
+    assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    drop(host);
+    let rendered: String = output
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(rendered.contains("Create new identity"), "{rendered}");
+}
+
+// @internal — idle input and key releases must return without forwarding invented Core events; Ctrl-C exits.
+#[test]
+fn input_waits_are_bounded_and_control_c_quits_without_dispatch() {
+    let mut released = KeyEvent::new(KeyCode::Char('x'), KeyModifiers::NONE);
+    released.kind = KeyEventKind::Release;
+    let input = Keys(VecDeque::from([
+        None,
+        Some(NativeEvent::Key(released)),
+        Some(NativeEvent::Key(KeyEvent::new(
+            KeyCode::Char('c'),
+            KeyModifiers::CONTROL,
+        ))),
+    ]));
+    let mut output = Terminal::new(TestBackend::new(100, 35)).unwrap();
+    let mut host = TuiTerminal::new(&mut output, input, |_, _| Ok(()));
+    assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Break(())
+    );
+}
+
+// @internal — resize redraws presentation without synthesizing an application action.
+#[test]
+fn resize_preserves_the_presented_surface() {
+    let mut output = Terminal::new(TestBackend::new(100, 35)).unwrap();
+    let mut host = TuiTerminal::new(
+        &mut output,
+        Keys(VecDeque::from([Some(NativeEvent::Resize(100, 35))])),
+        |_, _| Ok(()),
+    );
+    assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+    drop(host);
+    let rendered: String = output
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect();
+    assert!(rendered.contains("Create new identity"), "{rendered}");
+}

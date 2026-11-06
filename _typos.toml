@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 [default.extend-words]
+ratatui = "ratatui"
 # typos splits "PNGs" (plural of PNG) into "PN" + "Gs" and flags "PN".
 PN = "PN"
 # "wdth" is the OpenType width axis tag in the variable font file names.

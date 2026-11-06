@@ -8,6 +8,8 @@ pub mod engine;
 pub mod locale;
 pub mod storage;
 pub mod terminal;
+#[cfg(feature = "tui")]
+pub mod terminal_tui;
 pub mod wiring;
 
 #[cfg(feature = "cli")]

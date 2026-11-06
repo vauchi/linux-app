@@ -233,6 +233,42 @@ pub fn core_version() -> &'static str {
     vauchi_core::VERSION
 }
 
+#[cfg(feature = "tui")]
+pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
+    use crate::terminal_tui::{CrosstermEvents, TerminalMode, TuiTerminal};
+    let engine = start_shared_engine(false)?;
+    let hardware = LinuxHardware::start()?;
+    let bridge = HardwareBridge::new(engine, hardware)?;
+    let _mode = TerminalMode::enter()?;
+    let backend = ratatui_crossterm::CrosstermBackend::new(std::io::stdout());
+    let mut output = ratatui_core::terminal::Terminal::new(backend)?;
+    let mut terminal = TuiTerminal::new(&mut output, CrosstermEvents, terminal_feedback);
+    crate::terminal::run_terminal(bridge, &mut terminal)?;
+    Ok(())
+}
+
+#[cfg(feature = "tui")]
+fn terminal_feedback(
+    commands: &[Command],
+    feedback: &mut crate::terminal_tui::TerminalFeedback,
+) -> std::io::Result<()> {
+    for command in commands {
+        match command {
+            Command::ShowToast { toast } => feedback.status = Some(toast.message.clone()),
+            Command::PresentAlert { alert } => {
+                feedback.alert = Some((alert.title.clone(), alert.message.clone()));
+            }
+            _ => {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Unsupported,
+                    "terminal effect has no native adapter",
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 #[cfg(feature = "gtk")]
 struct LinuxHardwareLink(RefCell<LinuxHardware>);
 
