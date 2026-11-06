@@ -3,6 +3,18 @@
 
 #![cfg(feature = "cli")]
 
+// @internal — an interactive host must reject command options rather than silently ignore them.
+#[test]
+fn native_cli_rejects_unsupported_arguments() {
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_vauchi"))
+        .arg("--unsupported")
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("Usage: vauchi"));
+}
+
 // @internal — actual native input must exit on Ctrl-C/EOF and restore its terminal.
 #[test]
 fn native_cli_quits_on_ctrl_c_and_pipe_eof_and_restores_its_terminal() {
