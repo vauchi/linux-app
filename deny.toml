@@ -6,6 +6,7 @@
 # https://embarkstudios.github.io/cargo-deny/
 
 [graph]
+all-features = true
 targets = [
     "x86_64-unknown-linux-gnu",
     "aarch64-unknown-linux-gnu",
@@ -60,6 +61,11 @@ deny = [
 ]
 
 skip = [
+    # The TUI renderer requires these versions; GTK, rqrr and the CLI require
+    # incompatible versions. Keep ADR-078's one-copy rule for Vauchi crates.
+    { name = "foldhash", version = "=0.1.5" },
+    { name = "lru", version = "=0.12.5" },
+    { name = "unicode-width", version = "=0.1.14" },
     # ADR-078 D-5: one copy of every vauchi crate (Core, the contract, the
     # shells) per binary. These third-party crates legitimately appear in
     # two versions through the GTK and BlueZ trees; any vauchi-* duplicate
