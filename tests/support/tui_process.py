@@ -66,6 +66,10 @@ with tempfile.TemporaryDirectory() as directory:
         assert termios.tcgetattr(slave) == original, "terminal attributes were not restored"
         assert b"\x1b[?1049h" in transcript, "alternate screen was not entered"
         assert b"\x1b[?1049l" in transcript, "alternate screen was not restored"
+        restored_screen = transcript.rfind(b"\x1b[?1049l")
+        hidden_cursor = transcript.rfind(b"\x1b[?25l", 0, restored_screen)
+        shown_cursor = transcript.rfind(b"\x1b[?25h", 0, restored_screen)
+        assert shown_cursor > hidden_cursor, "cursor was not restored before leaving the alternate screen"
         print("startup rendered; quit clean; terminal restored")
     finally:
         if not exited:

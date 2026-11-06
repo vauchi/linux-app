@@ -119,7 +119,9 @@ where
     F: FnMut(&[Command], &mut TerminalFeedback) -> io::Result<()>,
 {
     fn restore(&mut self) -> io::Result<()> {
-        self.mode.take().map_or(Ok(()), |mut mode| mode.restore())
+        let cursor = self.output.show_cursor().map_err(io::Error::other);
+        let mode = self.mode.take().map_or(Ok(()), |mut mode| mode.restore());
+        cursor.and(mode)
     }
 
     fn render(&mut self, commands: &[Command]) -> io::Result<ControlFlow<()>> {
