@@ -21,6 +21,7 @@ BINARY = pathlib.Path(sys.argv.pop()).resolve(strict=True)
 class TerminalProcessTest(unittest.TestCase):
     # @internal — native acceptance checks must remain active under python -O.
     def test_startup_quit_and_terminal_restoration(self):
+        self.assertEqual(BINARY.name, "vauchi-tui", "only the Cargo-built vauchi-tui binary may be executed")
         with tempfile.TemporaryDirectory() as directory:
             master, slave = pty.openpty()
             original = termios.tcgetattr(slave)
@@ -30,7 +31,7 @@ class TerminalProcessTest(unittest.TestCase):
             child = None
             try:
                 child = subprocess.Popen(
-                    [str(BINARY)], stdin=slave, stdout=slave, stderr=slave,
+                    ["./vauchi-tui"], cwd=BINARY.parent, stdin=slave, stdout=slave, stderr=slave,
                     start_new_session=True, env=environment,
                 )
                 exited = os.pidfd_open(child.pid)

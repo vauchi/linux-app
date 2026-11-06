@@ -232,6 +232,7 @@ test:shared:
   before_script:
     - !reference [.self-hosted, before_script]
   script:
+    - python3 ci/tests/registry-launch.test.py
     - bash ci/tests/headless-dependencies.test.sh
     - bash ci/tests/headless-dependencies.test.sh cli
     - bash ci/tests/headless-dependencies.test.sh tui

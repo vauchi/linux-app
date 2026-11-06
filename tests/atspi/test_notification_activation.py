@@ -6,12 +6,12 @@
 import os
 from pathlib import Path
 import signal
-import shutil
 import subprocess
 import sys
 import tempfile
 
 import pytest
+from registry_launch import start_registry
 
 
 def accessibility_bus_id():
@@ -113,15 +113,9 @@ def check_cold_start():
         ).unpack()[0]
 
     assert bus_call("NameHasOwner", app_id) is False
-    registry = next(
-        (path for directory in ("/usr/libexec", "/usr/lib/at-spi2-core", "/usr/lib")
-         if (path := Path(directory) / "at-spi2-registryd").is_file()),
-        shutil.which("at-spi2-registryd"),
-    )
-    assert registry is not None, "at-spi2-registryd is required"
     # Some distros use dbus-broker for the a11y bus, whose service activation
     # needs a user systemd session. Start the registry explicitly in isolation.
-    registry_process = subprocess.Popen([str(registry)])
+    registry_process = start_registry()
     Atspi.init()
     desktop = Atspi.get_desktop(0)
     assert desktop is not None

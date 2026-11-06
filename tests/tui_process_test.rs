@@ -31,3 +31,27 @@ fn native_tui_quits_and_restores_its_terminal() {
         );
     }
 }
+
+// @internal — the helper must reject arbitrary executables in normal and optimized Python.
+#[test]
+fn native_helper_rejects_a_non_vauchi_executable() {
+    for optimized in [false, true] {
+        let mut command = std::process::Command::new("python3");
+        if optimized {
+            command.arg("-O");
+        }
+        let output = command
+            .arg(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/tests/support/tui_process.py"
+            ))
+            .arg("/usr/bin/true")
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(1));
+        assert!(
+            String::from_utf8_lossy(&output.stderr)
+                .contains("only the Cargo-built vauchi-tui binary may be executed")
+        );
+    }
+}
