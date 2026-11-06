@@ -7,6 +7,7 @@
 pub mod engine;
 pub mod locale;
 pub mod storage;
+pub mod terminal;
 pub mod wiring;
 
 #[cfg(feature = "cli")]
