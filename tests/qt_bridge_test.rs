@@ -33,10 +33,13 @@ impl CommandEngine for Engine {
     }
 }
 
-fn host(
-    initial: Vec<Command>,
-    reply: Vec<Command>,
-) -> (QtHost<Engine>, Rc<RefCell<Vec<Event>>>, Rc<Cell<bool>>) {
+struct Fixture {
+    host: QtHost<Engine>,
+    events: Rc<RefCell<Vec<Event>>>,
+    invalidated: Rc<Cell<bool>>,
+}
+
+fn host(initial: Vec<Command>, reply: Vec<Command>) -> Fixture {
     let events: Rc<RefCell<Vec<Event>>> = Rc::default();
     let invalidated = Rc::new(Cell::new(true));
     let engine = Engine {
@@ -55,11 +58,11 @@ fn host(
         },
     )
     .unwrap();
-    (
-        QtHost::new(HardwareBridge::new(engine, hardware).unwrap()),
+    Fixture {
+        host: QtHost::new(HardwareBridge::new(engine, hardware).unwrap()),
         events,
         invalidated,
-    )
+    }
 }
 
 fn batch(host: &mut QtHost<Engine>) -> Option<Vec<Command>> {
@@ -71,7 +74,11 @@ fn batch(host: &mut QtHost<Engine>) -> Option<Vec<Command>> {
 // @internal — the Qt host forwards complete batches and repaints without input.
 #[test]
 fn initial_and_invalidated_commands_are_forwarded_once() {
-    let (mut host, _, invalidated) = host(vec![Command::ResetApplication], vec![]);
+    let Fixture {
+        mut host,
+        invalidated,
+        ..
+    } = host(vec![Command::ResetApplication], vec![]);
     assert_eq!(batch(&mut host), Some(vec![Command::ResetApplication]));
     assert_eq!(batch(&mut host), None);
     invalidated.set(true);
@@ -82,7 +89,9 @@ fn initial_and_invalidated_commands_are_forwarded_once() {
 // @internal — native permission outcomes remain observations across app wiring.
 #[test]
 fn native_event_and_the_engine_reply_keep_their_payloads() {
-    let (mut host, events, _) = host(vec![], vec![Command::ResetApplication]);
+    let Fixture {
+        mut host, events, ..
+    } = host(vec![], vec![Command::ResetApplication]);
     assert_eq!(batch(&mut host), None);
     let event = Event::PermissionDenied {
         transport: "camera".into(),
@@ -99,7 +108,9 @@ fn native_event_and_the_engine_reply_keep_their_payloads() {
 // @internal — the app uses the contract's bounded decoder, not bare serde.
 #[test]
 fn malformed_and_oversized_native_events_never_reach_the_engine() {
-    let (mut host, events, _) = host(vec![], vec![]);
+    let Fixture {
+        mut host, events, ..
+    } = host(vec![], vec![]);
     let before = events.borrow().clone();
     let value = InputValue::Text("x".repeat(MAX_EVENT_INPUT_VALUE_BYTES + 1));
     let oversized_event: Event = serde_json::from_value(serde_json::json!({
