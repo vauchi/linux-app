@@ -51,6 +51,10 @@ criteria = "safe-to-deploy"
 version = "1.0.104"
 criteria = "safe-to-deploy"
 
+[[exemptions.approx]]
+version = "0.5.1"
+criteria = "safe-to-deploy"
+
 [[exemptions.argon2]]
 version = "0.5.3"
 criteria = "safe-to-deploy"
@@ -123,6 +127,10 @@ criteria = "safe-to-deploy"
 version = "3.20.3"
 criteria = "safe-to-deploy"
 
+[[exemptions.by_address]]
+version = "1.2.1"
+criteria = "safe-to-deploy"
+
 [[exemptions.bytemuck]]
 version = "1.25.2"
 criteria = "safe-to-deploy"
@@ -145,10 +153,6 @@ criteria = "safe-to-deploy"
 
 [[exemptions.cairo-sys-rs]]
 version = "0.20.10"
-criteria = "safe-to-deploy"
-
-[[exemptions.cassowary]]
-version = "0.3.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.castaway]]
@@ -208,7 +212,7 @@ version = "0.1.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.compact_str]]
-version = "0.8.2"
+version = "0.9.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.concurrent-queue]]
@@ -245,6 +249,10 @@ criteria = "safe-to-deploy"
 
 [[exemptions.crc32fast]]
 version = "1.5.4"
+criteria = "safe-to-deploy"
+
+[[exemptions.critical-section]]
+version = "1.2.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.crossbeam-utils]]
@@ -432,10 +440,6 @@ version = "1.0.7"
 criteria = "safe-to-deploy"
 
 [[exemptions.foldhash]]
-version = "0.1.5"
-criteria = "safe-to-deploy"
-
-[[exemptions.foldhash]]
 version = "0.2.0"
 criteria = "safe-to-deploy"
 
@@ -596,10 +600,6 @@ version = "0.14.5"
 criteria = "safe-to-deploy"
 
 [[exemptions.hashbrown]]
-version = "0.15.5"
-criteria = "safe-to-deploy"
-
-[[exemptions.hashbrown]]
 version = "0.17.1"
 criteria = "safe-to-deploy"
 
@@ -720,7 +720,7 @@ version = "0.3.14"
 criteria = "safe-to-deploy"
 
 [[exemptions.itertools]]
-version = "0.13.0"
+version = "0.14.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.itoa]]
@@ -755,6 +755,10 @@ criteria = "safe-to-deploy"
 version = "0.3.107"
 criteria = "safe-to-deploy"
 
+[[exemptions.kasuari]]
+version = "0.4.13"
+criteria = "safe-to-deploy"
+
 [[exemptions.keyring]]
 version = "3.6.3"
 criteria = "safe-to-deploy"
@@ -787,8 +791,16 @@ criteria = "safe-to-deploy"
 version = "0.8.9"
 criteria = "safe-to-deploy"
 
+[[exemptions.libm]]
+version = "0.2.16"
+criteria = "safe-to-deploy"
+
 [[exemptions.libsqlite3-sys]]
 version = "0.30.1"
+criteria = "safe-to-deploy"
+
+[[exemptions.line-clipping]]
+version = "0.3.8"
 criteria = "safe-to-deploy"
 
 [[exemptions.linux-keyutils]]
@@ -817,10 +829,6 @@ criteria = "safe-to-deploy"
 
 [[exemptions.log]]
 version = "0.4.35"
-criteria = "safe-to-deploy"
-
-[[exemptions.lru]]
-version = "0.12.5"
 criteria = "safe-to-deploy"
 
 [[exemptions.lru]]
@@ -931,6 +939,10 @@ criteria = "safe-to-deploy"
 version = "0.2.19"
 criteria = "safe-to-deploy"
 
+[[exemptions.num_threads]]
+version = "0.1.8"
+criteria = "safe-to-deploy"
+
 [[exemptions.ohttp]]
 version = "0.7.2"
 criteria = "safe-to-deploy"
@@ -945,6 +957,18 @@ criteria = "safe-to-deploy"
 
 [[exemptions.ordered-stream]]
 version = "0.2.0"
+criteria = "safe-to-deploy"
+
+[[exemptions.palette]]
+version = "0.7.7"
+criteria = "safe-to-deploy"
+
+[[exemptions.palette_derive]]
+version = "0.7.7"
+criteria = "safe-to-deploy"
+
+[[exemptions.palette_math]]
+version = "0.7.7"
 criteria = "safe-to-deploy"
 
 [[exemptions.pango]]
@@ -1103,8 +1127,12 @@ criteria = "safe-to-deploy"
 version = "0.9.5"
 criteria = "safe-to-deploy"
 
-[[exemptions.ratatui]]
-version = "0.28.1"
+[[exemptions.ratatui-core]]
+version = "0.1.2"
+criteria = "safe-to-deploy"
+
+[[exemptions.ratatui-widgets]]
+version = "0.3.2"
 criteria = "safe-to-deploy"
 
 [[exemptions.redox_syscall]]
@@ -1316,11 +1344,11 @@ version = "0.11.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.strum]]
-version = "0.26.3"
+version = "0.28.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.strum_macros]]
-version = "0.26.4"
+version = "0.28.0"
 criteria = "safe-to-deploy"
 
 [[exemptions.subtle]]
@@ -1448,11 +1476,7 @@ version = "1.13.3"
 criteria = "safe-to-deploy"
 
 [[exemptions.unicode-truncate]]
-version = "1.1.0"
-criteria = "safe-to-deploy"
-
-[[exemptions.unicode-width]]
-version = "0.1.14"
+version = "2.0.1"
 criteria = "safe-to-deploy"
 
 [[exemptions.unicode-width]]
