@@ -6,6 +6,8 @@
 //! set-up beside it; nothing here decides behaviour (D-13).
 pub mod engine;
 pub mod locale;
+#[cfg(feature = "qt")]
+pub mod qt;
 pub mod storage;
 pub mod terminal;
 #[cfg(feature = "tui")]

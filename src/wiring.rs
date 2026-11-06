@@ -233,6 +233,17 @@ pub fn core_version() -> &'static str {
     vauchi_core::VERSION
 }
 
+#[cfg(feature = "qt")]
+pub fn run_qt() -> Result<i32, Box<dyn std::error::Error>> {
+    let engine = start_shared_engine(false)?;
+    let hardware = LinuxHardware::start()?;
+    let bridge = HardwareBridge::new(engine, hardware)?;
+    Ok(crate::qt::run(
+        &std::env::args().collect::<Vec<_>>(),
+        bridge,
+    )?)
+}
+
 #[cfg(feature = "tui")]
 pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
     use crate::terminal_tui::{CrosstermEvents, TerminalMode, TuiTerminal};

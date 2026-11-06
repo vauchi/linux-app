@@ -14,6 +14,7 @@ publish = false
 [features]
 default = ["gtk"]
 gtk = ["dep:gtk4", "dep:libadwaita", "dep:gtk-display"]
+qt = ["dep:qt-display"]
 cli = ["dep:vauchi-cli-display"]
 tui = ["dep:vauchi-tui-display", "dep:crossterm", "dep:ratatui-core", "dep:ratatui-crossterm"]
 # NFC over PC/SC needs libpcsclite on the build host; off by default.
@@ -32,6 +33,11 @@ name = "vauchi-tui"
 path = "src/bin/vauchi-tui.rs"
 required-features = ["tui"]
 
+[[bin]]
+name = "qvauchi"
+path = "src/bin/qvauchi.rs"
+required-features = ["qt"]
+
 [dependencies]
 # Core, the hardware shell and the display shell all on contract v0.97.2
 # (ADR-078 decision 6); deny.toml refuses a second copy of any of them (D-5).
@@ -47,6 +53,8 @@ vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.10
 # The GTK display shell; its repository is still `linux-gtk` and its crate
 # `vauchi-gtk` until the rename (ADR-078 step 4).
 gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.10.0", version = "=0.10.0", optional = true }
+qt-display = { git = "https://gitlab.com/vauchi/linux-qt.git", tag = "qt-display-v0.1.0", version = "=0.1.0", optional = true }
+serde_json = "1"
 vauchi-cli-display = { git = "https://gitlab.com/vauchi/cli.git", tag = "v0.1.1", version = "=0.1.0", optional = true }
 vauchi-tui-display = { git = "https://gitlab.com/vauchi/tui.git", tag = "v0.3.0", version = "=0.2.0", optional = true }
 crossterm = { version = "0.28", optional = true }
@@ -80,11 +88,19 @@ required-features = ["gtk"]
 name = "terminal_display_contract_test"
 required-features = ["cli", "tui"]
 
+[[test]]
+name = "qt_bridge_test"
+required-features = ["qt"]
+
+[[test]]
+name = "qt_roundtrip"
+required-features = ["qt"]
+harness = false
+
 [dev-dependencies]
 # The storage tests' throwaway data directories.
 tempfile = "3.0"
 # The render_catalog tests write catalog JSON for the tool to read.
-serde_json = "1"
 
 # rqrr 0.11.0 with the clamped Perspective::map (vauchi/utils/rqrr). A
 # [patch] applies only in the workspace that declares it, so this binary
