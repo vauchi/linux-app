@@ -16,6 +16,23 @@ BINARY = pathlib.Path(sys.argv.pop()).resolve(strict=True)
 
 
 class CliProcessTest(unittest.TestCase):
+    def wait_for_prompt(self, child, descriptor):
+        exited = os.pidfd_open(child.pid)
+        transcript = bytearray()
+        try:
+            deadline = time.monotonic() + 20
+            while b"Choose" not in transcript:
+                remaining = deadline - time.monotonic()
+                self.assertGreater(remaining, 0, f"startup timed out: {transcript!r}")
+                ready, _, _ = select.select([descriptor, exited], [], [], remaining)
+                self.assertTrue(ready, "startup produced no prompt")
+                if descriptor in ready:
+                    transcript.extend(os.read(descriptor, 65536))
+                self.assertIsNone(child.poll(), f"exited before startup: {transcript!r}")
+            return transcript
+        finally:
+            os.close(exited)
+
     # @internal — assertions remain active under optimized Python.
     def test_native_terminal_and_pipe_eof(self):
         self.assertEqual(BINARY.name, "vauchi", "only the Cargo-built vauchi binary may be executed")
@@ -30,24 +47,11 @@ class CliProcessTest(unittest.TestCase):
                     ["./vauchi"], cwd=BINARY.parent, stdin=slave, stdout=slave, stderr=slave,
                     start_new_session=True, env=environment,
                 )
-                exited = os.pidfd_open(child.pid)
-                transcript = bytearray()
-                try:
-                    deadline = time.monotonic() + 20
-                    while b"Choose" not in transcript:
-                        remaining = deadline - time.monotonic()
-                        self.assertGreater(remaining, 0, f"startup timed out: {transcript!r}")
-                        ready, _, _ = select.select([master, exited], [], [], remaining)
-                        self.assertTrue(ready, "startup produced no prompt")
-                        if master in ready:
-                            transcript.extend(os.read(master, 65536))
-                        self.assertIsNone(child.poll(), f"exited before startup: {transcript!r}")
-                    self.assertFalse(termios.tcgetattr(slave)[3] & termios.ECHO, "native input still echoes")
-                    os.write(master, b"\x03")
-                    self.assertEqual(child.wait(timeout=10), 0, f"Ctrl-C failed: {transcript!r}")
-                    self.assertEqual(termios.tcgetattr(slave), original, "terminal attributes were not restored")
-                finally:
-                    os.close(exited)
+                transcript = self.wait_for_prompt(child, master)
+                self.assertFalse(termios.tcgetattr(slave)[3] & termios.ECHO, "native input still echoes")
+                os.write(master, b"\x03")
+                self.assertEqual(child.wait(timeout=10), 0, f"Ctrl-C failed: {transcript!r}")
+                self.assertEqual(termios.tcgetattr(slave), original, "terminal attributes were not restored")
             finally:
                 if child is not None:
                     if child.poll() is None:
@@ -69,7 +73,9 @@ class CliProcessTest(unittest.TestCase):
                     ["./vauchi"], cwd=BINARY.parent, stdin=slave, stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE, start_new_session=True, env=environment,
                 )
+                self.wait_for_prompt(child, child.stdout.fileno())
                 child.stdout.close()
+                os.write(master, b"x")
                 self.assertEqual(child.wait(timeout=20), 1, "broken stdout did not fail")
                 self.assertEqual(termios.tcgetattr(slave), original, "I/O failure left terminal raw")
             finally:
