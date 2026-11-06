@@ -6,8 +6,10 @@
 // @internal — an interactive host must reject command options rather than silently ignore them.
 #[test]
 fn native_cli_rejects_unsupported_arguments() {
+    let directory = tempfile::tempdir().unwrap();
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_vauchi"))
         .arg("--unsupported")
+        .env("XDG_DATA_HOME", directory.path())
         .stdin(std::process::Stdio::null())
         .output()
         .unwrap();
