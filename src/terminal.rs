@@ -8,6 +8,12 @@ use vauchi_contract::{Command, Event};
 
 use crate::{engine::CommandEngine, wiring::HardwareBridge};
 
+#[derive(Default)]
+pub struct TerminalFeedback {
+    pub status: Option<String>,
+    pub alert: Option<(String, String)>,
+}
+
 pub trait TerminalIo {
     /// Apply a batch and render it; break when the display requests exit.
     fn render(&mut self, commands: &[Command]) -> io::Result<ControlFlow<()>>;

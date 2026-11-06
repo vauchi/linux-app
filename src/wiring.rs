@@ -259,10 +259,10 @@ pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[cfg(feature = "tui")]
+#[cfg(any(feature = "cli", feature = "tui"))]
 fn terminal_feedback(
     commands: &[Command],
-    feedback: &mut crate::terminal_tui::TerminalFeedback,
+    feedback: &mut crate::terminal::TerminalFeedback,
 ) -> std::io::Result<()> {
     for command in commands {
         match command {
@@ -278,6 +278,19 @@ fn terminal_feedback(
             }
         }
     }
+    Ok(())
+}
+
+#[cfg(feature = "cli")]
+pub fn run_cli() -> Result<(), Box<dyn std::error::Error>> {
+    use crate::terminal_cli::{CliTerminal, FdInput};
+    let engine = start_shared_engine(false)?;
+    let hardware = LinuxHardware::start()?;
+    let bridge = HardwareBridge::new(engine, hardware)?;
+    let input = FdInput::new(std::io::stdin())?;
+    let mut output = std::io::stdout();
+    let mut terminal = CliTerminal::new(&mut output, input, terminal_feedback);
+    crate::terminal::run_terminal(bridge, &mut terminal)?;
     Ok(())
 }
 

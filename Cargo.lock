@@ -3822,8 +3822,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-cli-display"
-version = "0.1.0"
-source = "git+https://gitlab.com/vauchi/cli.git?tag=v0.1.1#1c00369e2a0a22e9ed7ac37f1690d9713c62d531"
+version = "0.2.0"
+source = "git+https://gitlab.com/vauchi/cli.git?tag=v0.1.3#6a343a0bb5cf1792a7da24af3e22156cd4e18469"
 dependencies = [
  "console",
  "vauchi-contract",
@@ -3909,6 +3909,7 @@ dependencies = [
  "qt-display",
  "ratatui-core",
  "ratatui-crossterm",
+ "rustix 1.1.6",
  "serde_json",
  "tempfile",
  "vauchi-app",

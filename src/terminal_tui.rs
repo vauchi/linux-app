@@ -55,11 +55,7 @@ impl TerminalEvents for CrosstermEvents {
     }
 }
 
-#[derive(Default)]
-pub struct TerminalFeedback {
-    pub status: Option<String>,
-    pub alert: Option<(String, String)>,
-}
+pub use crate::terminal::TerminalFeedback;
 
 pub struct TuiTerminal<'a, B: Backend, I, F> {
     output: &'a mut Terminal<B>,

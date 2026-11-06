@@ -10,6 +10,8 @@ pub mod locale;
 pub mod qt;
 pub mod storage;
 pub mod terminal;
+#[cfg(feature = "cli")]
+pub mod terminal_cli;
 #[cfg(feature = "tui")]
 pub mod terminal_tui;
 pub mod wiring;

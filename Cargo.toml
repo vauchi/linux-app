@@ -15,7 +15,7 @@ publish = false
 default = ["gtk"]
 gtk = ["dep:gtk4", "dep:libadwaita", "dep:gtk-display"]
 qt = ["dep:qt-display"]
-cli = ["dep:vauchi-cli-display"]
+cli = ["dep:vauchi-cli-display", "dep:rustix"]
 tui = ["dep:vauchi-tui-display", "dep:crossterm", "dep:ratatui-core", "dep:ratatui-crossterm"]
 # NFC over PC/SC needs libpcsclite on the build host; off by default.
 nfc = ["vauchi-linux-hw/nfc"]
@@ -38,6 +38,11 @@ name = "qvauchi"
 path = "src/bin/qvauchi.rs"
 required-features = ["qt"]
 
+[[bin]]
+name = "vauchi"
+path = "src/bin/vauchi.rs"
+required-features = ["cli"]
+
 [dependencies]
 # Core, the hardware shell and the display shell all on contract v0.97.2
 # (ADR-078 decision 6); deny.toml refuses a second copy of any of them (D-5).
@@ -55,7 +60,8 @@ vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.10
 gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.10.0", version = "=0.10.0", optional = true }
 qt-display = { git = "https://gitlab.com/vauchi/linux-qt.git", tag = "qt-display-v0.1.2", version = "=0.1.2", optional = true }
 serde_json = "1"
-vauchi-cli-display = { git = "https://gitlab.com/vauchi/cli.git", tag = "v0.1.1", version = "=0.1.0", optional = true }
+vauchi-cli-display = { git = "https://gitlab.com/vauchi/cli.git", tag = "v0.1.3", version = "=0.2.0", optional = true }
+rustix = { version = "1.1", features = ["event", "termios"], optional = true }
 vauchi-tui-display = { git = "https://gitlab.com/vauchi/tui.git", tag = "v0.3.0", version = "=0.2.0", optional = true }
 crossterm = { version = "0.28", optional = true }
 ratatui-core = { version = "0.1.2", default-features = false, features = ["std", "layout-cache", "underline-color"], optional = true }
