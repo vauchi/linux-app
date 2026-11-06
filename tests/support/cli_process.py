@@ -61,6 +61,26 @@ class CliProcessTest(unittest.TestCase):
             )
             self.assertEqual(completed.returncode, 0, completed.stderr.decode(errors="replace"))
             self.assertIn(b"Choose", completed.stdout, "pipe mode did not render")
+            master, slave = pty.openpty()
+            original = termios.tcgetattr(slave)
+            child = None
+            try:
+                child = subprocess.Popen(
+                    ["./vauchi"], cwd=BINARY.parent, stdin=slave, stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE, start_new_session=True, env=environment,
+                )
+                child.stdout.close()
+                self.assertEqual(child.wait(timeout=20), 1, "broken stdout did not fail")
+                self.assertEqual(termios.tcgetattr(slave), original, "I/O failure left terminal raw")
+            finally:
+                if child is not None:
+                    if child.poll() is None:
+                        child.kill()
+                    child.wait(timeout=5)
+                    if child.stderr is not None:
+                        child.stderr.close()
+                os.close(master)
+                os.close(slave)
         print("CLI startup; quit and EOF clean; terminal restored")
 
 

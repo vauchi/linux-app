@@ -6,22 +6,52 @@
 // @internal — actual native input must exit on Ctrl-C/EOF and restore its terminal.
 #[test]
 fn native_cli_quits_on_ctrl_c_and_pipe_eof_and_restores_its_terminal() {
-    let output = std::process::Command::new("python3")
-        .arg(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/support/cli_process.py"
-        ))
-        .arg(env!("CARGO_BIN_EXE_vauchi"))
-        .output()
-        .unwrap();
-    assert_eq!(
-        output.status.code(),
-        Some(0),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    assert_eq!(
-        String::from_utf8_lossy(&output.stdout).trim(),
-        "CLI startup; quit and EOF clean; terminal restored"
-    );
+    for optimized in [false, true] {
+        let mut command = std::process::Command::new("python3");
+        if optimized {
+            command.arg("-O");
+        }
+        let output = command
+            .arg(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/tests/support/cli_process.py"
+            ))
+            .arg(env!("CARGO_BIN_EXE_vauchi"))
+            .output()
+            .unwrap();
+        assert_eq!(
+            output.status.code(),
+            Some(0),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(
+            String::from_utf8_lossy(&output.stdout).trim(),
+            "CLI startup; quit and EOF clean; terminal restored"
+        );
+    }
+}
+
+// @internal — the helper must reject arbitrary executables even under python -O.
+#[test]
+fn native_cli_helper_rejects_other_executables() {
+    for optimized in [false, true] {
+        let mut command = std::process::Command::new("python3");
+        if optimized {
+            command.arg("-O");
+        }
+        let output = command
+            .arg(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/tests/support/cli_process.py"
+            ))
+            .arg("/usr/bin/true")
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(1));
+        assert!(
+            String::from_utf8_lossy(&output.stderr)
+                .contains("only the Cargo-built vauchi binary may be executed")
+        );
+    }
 }
