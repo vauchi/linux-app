@@ -67,9 +67,14 @@ struct Console {
     batches: Vec<Vec<Command>>,
     waits: Vec<Duration>,
     stop_after_render: bool,
+    restored: Rc<Cell<bool>>,
 }
 
 impl TerminalIo for Console {
+    fn restore(&mut self) -> io::Result<()> {
+        self.restored.set(true);
+        Ok(())
+    }
     fn render(&mut self, commands: &[Command]) -> io::Result<ControlFlow<()>> {
         self.batches.push(commands.to_vec());
         Ok(if self.stop_after_render {
@@ -97,6 +102,7 @@ fn console(
         batches: vec![],
         waits: vec![],
         stop_after_render: false,
+        restored: Rc::default(),
     }
 }
 
@@ -161,4 +167,67 @@ fn display_completion_stops_before_reading_input() {
     run_terminal(bridge(invalidated, Rc::default()), &mut terminal).unwrap();
     assert_eq!(terminal.batches, vec![vec![Command::PerformNativeBack]]);
     assert_eq!(terminal.waits, vec![]);
+}
+
+struct TeardownProbe {
+    restored: Rc<Cell<bool>>,
+    observed: Rc<Cell<Option<bool>>>,
+}
+impl Drop for TeardownProbe {
+    fn drop(&mut self) {
+        self.observed.set(Some(self.restored.get()));
+    }
+}
+impl CommandEngine for TeardownProbe {
+    fn dispatch(&self, _: Event) -> Vec<Command> {
+        vec![]
+    }
+    fn initial_commands(&self) -> Vec<Command> {
+        vec![]
+    }
+}
+
+// @internal — restoring the console must precede hardware teardown, which may wait on a native backend.
+#[test]
+fn terminal_is_restored_before_the_owned_bridge_is_destroyed() {
+    for case in ["quit", "io-error", "panic"] {
+        let reads = match case {
+            "quit" => vec![Ok(ControlFlow::Break(()))],
+            "io-error" => vec![Err(io::ErrorKind::BrokenPipe.into())],
+            _ => vec![],
+        };
+        let mut terminal = console(Rc::default(), reads);
+        let observed = Rc::new(Cell::new(None));
+        let hardware = LinuxHardware::with_backends(
+            Backends::default(),
+            HostDevices {
+                bluetooth_adapter: false,
+                sound_card: false,
+                video_device: false,
+                nfc_reader: false,
+            },
+        )
+        .unwrap();
+        let bridge = HardwareBridge::new(
+            TeardownProbe {
+                restored: terminal.restored.clone(),
+                observed: observed.clone(),
+            },
+            hardware,
+        )
+        .unwrap();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            run_terminal(bridge, &mut terminal)
+        }));
+        let outcome = match result {
+            Ok(Ok(())) => "quit",
+            Ok(Err(error)) => {
+                assert_eq!(error.kind(), io::ErrorKind::BrokenPipe);
+                "io-error"
+            }
+            Err(_) => "panic",
+        };
+        assert_eq!(outcome, case);
+        assert_eq!(observed.get(), Some(true));
+    }
 }

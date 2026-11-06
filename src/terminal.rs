@@ -15,12 +15,44 @@ pub trait TerminalIo {
     /// Return input or exit, waiting no longer than `timeout` when idle.
     /// An empty batch means the wait expired without input.
     fn wait_input(&mut self, timeout: Duration) -> io::Result<ControlFlow<(), Vec<Event>>>;
+
+    /// Restore native terminal state before hardware teardown can block.
+    fn restore(&mut self) -> io::Result<()> {
+        Ok(())
+    }
 }
 
 /// Own the hardware for the loop's lifetime, including error and exit paths.
 /// Input adapters must honor the bounded wait so background events progress.
 pub fn run_terminal<E: CommandEngine>(
     mut bridge: HardwareBridge<E>,
+    terminal: &mut impl TerminalIo,
+) -> io::Result<()> {
+    let mut guard = RestoreTerminal {
+        terminal,
+        active: true,
+    };
+    let result = run_loop(&mut bridge, guard.terminal);
+    guard.active = false;
+    let restored = guard.terminal.restore();
+    result.and(restored)
+}
+
+struct RestoreTerminal<'a, T: TerminalIo> {
+    terminal: &'a mut T,
+    active: bool,
+}
+
+impl<T: TerminalIo> Drop for RestoreTerminal<'_, T> {
+    fn drop(&mut self) {
+        if self.active {
+            let _ = self.terminal.restore();
+        }
+    }
+}
+
+fn run_loop<E: CommandEngine>(
+    bridge: &mut HardwareBridge<E>,
     terminal: &mut impl TerminalIo,
 ) -> io::Result<()> {
     loop {

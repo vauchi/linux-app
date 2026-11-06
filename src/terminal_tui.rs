@@ -11,21 +11,32 @@ use vauchi_tui_display::{SessionView, TerminalSession, ui::presentation_input::K
 
 use crate::terminal::TerminalIo;
 
-pub struct TerminalMode;
+pub struct TerminalMode {
+    active: bool,
+}
 
 impl TerminalMode {
     pub fn enter() -> io::Result<Self> {
         crossterm::terminal::enable_raw_mode()?;
-        let mode = Self;
+        let mode = Self { active: true };
         crossterm::execute!(io::stdout(), crossterm::terminal::EnterAlternateScreen)?;
         Ok(mode)
+    }
+
+    fn restore(&mut self) -> io::Result<()> {
+        if !self.active {
+            return Ok(());
+        }
+        self.active = false;
+        let screen = crossterm::execute!(io::stdout(), crossterm::terminal::LeaveAlternateScreen);
+        let raw = crossterm::terminal::disable_raw_mode();
+        screen.and(raw)
     }
 }
 
 impl Drop for TerminalMode {
     fn drop(&mut self) {
-        let _ = crossterm::execute!(io::stdout(), crossterm::terminal::LeaveAlternateScreen);
-        let _ = crossterm::terminal::disable_raw_mode();
+        let _ = self.restore();
     }
 }
 
@@ -56,6 +67,7 @@ pub struct TuiTerminal<'a, B: Backend, I, F> {
     effects: F,
     session: TerminalSession,
     feedback: TerminalFeedback,
+    mode: Option<TerminalMode>,
 }
 
 impl<'a, B: Backend, I: TerminalEvents, F> TuiTerminal<'a, B, I, F>
@@ -69,7 +81,13 @@ where
             effects,
             session: TerminalSession::default(),
             feedback: TerminalFeedback::default(),
+            mode: None,
         }
+    }
+
+    pub fn with_mode(mut self, mode: TerminalMode) -> Self {
+        self.mode = Some(mode);
+        self
     }
 }
 
@@ -100,6 +118,10 @@ where
     B::Error: std::error::Error + Send + Sync + 'static,
     F: FnMut(&[Command], &mut TerminalFeedback) -> io::Result<()>,
 {
+    fn restore(&mut self) -> io::Result<()> {
+        self.mode.take().map_or(Ok(()), |mut mode| mode.restore())
+    }
+
     fn render(&mut self, commands: &[Command]) -> io::Result<ControlFlow<()>> {
         let effects = self.session.apply_commands(commands);
         (self.effects)(&effects, &mut self.feedback)?;

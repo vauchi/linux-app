@@ -239,10 +239,11 @@ pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
     let engine = start_shared_engine(false)?;
     let hardware = LinuxHardware::start()?;
     let bridge = HardwareBridge::new(engine, hardware)?;
-    let _mode = TerminalMode::enter()?;
+    let mode = TerminalMode::enter()?;
     let backend = ratatui_crossterm::CrosstermBackend::new(std::io::stdout());
     let mut output = ratatui_core::terminal::Terminal::new(backend)?;
-    let mut terminal = TuiTerminal::new(&mut output, CrosstermEvents, terminal_feedback);
+    let mut terminal =
+        TuiTerminal::new(&mut output, CrosstermEvents, terminal_feedback).with_mode(mode);
     crate::terminal::run_terminal(bridge, &mut terminal)?;
     Ok(())
 }

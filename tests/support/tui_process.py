@@ -42,6 +42,8 @@ with tempfile.TemporaryDirectory() as directory:
             assert ready, f"startup did not render: {transcript!r}"
             transcript.extend(os.read(master, 65536))
             child, status = os.waitpid(pid, os.WNOHANG)
+            if child:
+                exited = True
             assert child == 0, f"exited before startup: {status}: {transcript!r}"
         os.write(master, b"\x03")
         deadline = time.monotonic() + 10
@@ -56,6 +58,11 @@ with tempfile.TemporaryDirectory() as directory:
             ready, _, _ = select.select([master], [], [], min(remaining, 0.1))
             if ready:
                 transcript.extend(os.read(master, 65536))
+        while select.select([master], [], [], 0)[0]:
+            data = os.read(master, 65536)
+            if not data:
+                break
+            transcript.extend(data)
         assert termios.tcgetattr(slave) == original, "terminal attributes were not restored"
         assert b"\x1b[?1049h" in transcript, "alternate screen was not entered"
         assert b"\x1b[?1049l" in transcript, "alternate screen was not restored"
