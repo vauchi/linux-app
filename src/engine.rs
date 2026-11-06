@@ -11,6 +11,9 @@ use vauchi_contract::{Command, Event};
 pub trait CommandEngine {
     fn dispatch(&self, event: Event) -> Vec<Command>;
     fn initial_commands(&self) -> Vec<Command>;
+    fn take_invalidation(&self) -> bool {
+        false
+    }
 }
 
 pub struct CoreEngine {
@@ -70,5 +73,9 @@ impl CommandEngine for CoreEngine {
 
     fn initial_commands(&self) -> Vec<Command> {
         CoreEngine::initial_commands(self)
+    }
+
+    fn take_invalidation(&self) -> bool {
+        CoreEngine::take_invalidation(self)
     }
 }

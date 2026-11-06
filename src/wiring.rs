@@ -41,6 +41,9 @@ impl<E: CommandEngine> HardwareBridge<E> {
         };
         let capabilities = bridge.hardware.report();
         bridge.dispatch(capabilities)?;
+        // Core's subscription starts invalidated (#1029). Consume that token
+        // before the initial snapshot so the first poll preserves live input.
+        let _ = bridge.engine.take_invalidation();
         bridge.route(bridge.engine.initial_commands())?;
         Ok(bridge)
     }
@@ -53,26 +56,38 @@ impl<E: CommandEngine> HardwareBridge<E> {
         std::mem::take(&mut self.commands)
     }
 
-    /// Process one ready observation, leaving input scheduling to the host.
+    /// Process a pending repaint and one ready hardware observation.
     pub fn poll(&mut self) -> Result<bool, ExecuteError> {
+        let refreshed = self.refresh_presentation()?;
         match self.hardware.pop() {
             Some(event) => {
                 self.dispatch(event)?;
                 Ok(true)
             }
-            None => Ok(false),
+            None => Ok(refreshed),
         }
     }
 
     /// Wait for an observation while the host has no input to forward.
     pub fn wait_for_event(&mut self, timeout: std::time::Duration) -> Result<bool, ExecuteError> {
+        if self.refresh_presentation()? {
+            return Ok(true);
+        }
         match self.hardware.wait_for_event(timeout) {
             Some(event) => {
                 self.dispatch(event)?;
                 Ok(true)
             }
-            None => Ok(false),
+            None => self.refresh_presentation(),
         }
+    }
+
+    fn refresh_presentation(&mut self) -> Result<bool, ExecuteError> {
+        if !self.engine.take_invalidation() {
+            return Ok(false);
+        }
+        self.route(self.engine.initial_commands())?;
+        Ok(true)
     }
 
     fn route(&mut self, commands: Vec<Command>) -> Result<(), ExecuteError> {
