@@ -69,6 +69,8 @@ impl<E: CommandEngine> HardwareBridge<E> {
     }
 
     /// Wait for an observation while the host has no input to forward.
+    /// Repaints are checked before waiting and after a timeout; the host
+    /// chooses a bounded timeout to keep background updates responsive.
     pub fn wait_for_event(&mut self, timeout: std::time::Duration) -> Result<bool, ExecuteError> {
         if self.refresh_presentation()? {
             return Ok(true);
