@@ -659,6 +659,7 @@ dependencies = [
  "curve25519-dalek-derive",
  "digest",
  "fiat-crypto",
+ "rand_core 0.6.4",
  "rustc_version",
  "subtle",
  "zeroize",
@@ -3266,6 +3267,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "spake2"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5482afe85a0b6ce956c945401598dbc527593c77ba51d0a87a586938b1b893a"
+dependencies = [
+ "curve25519-dalek",
+ "hkdf",
+ "rand_core 0.6.4",
+ "sha2",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3781,8 +3794,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-app"
-version = "0.100.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.100.0#8fed847775a1c369e1fba7a20e8f4b0d9853ef5c"
+version = "0.100.2"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.100.2#be91cd195e694be62c9170ee23c44e5e43664902"
 dependencies = [
  "base64 0.22.1",
  "flate2",
@@ -3821,8 +3834,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-core"
-version = "0.100.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.100.0#8fed847775a1c369e1fba7a20e8f4b0d9853ef5c"
+version = "0.100.2"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.100.2#be91cd195e694be62c9170ee23c44e5e43664902"
 dependencies = [
  "argon2",
  "base64 0.22.1",
@@ -3849,6 +3862,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha2",
+ "spake2",
  "subtle",
  "thiserror",
  "tracing",
@@ -3920,8 +3934,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-protocol"
-version = "0.100.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.100.0#8fed847775a1c369e1fba7a20e8f4b0d9853ef5c"
+version = "0.100.2"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.100.2#be91cd195e694be62c9170ee23c44e5e43664902"
 dependencies = [
  "serde",
  "serde_json",
