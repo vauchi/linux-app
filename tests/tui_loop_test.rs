@@ -100,3 +100,34 @@ fn resize_preserves_the_presented_surface() {
         .collect();
     assert!(rendered.contains("Create new identity"), "{rendered}");
 }
+
+// @internal — dismissing a modal alert must not activate the surface underneath it.
+#[test]
+fn alert_dismissal_consumes_the_key_before_surface_input_resumes() {
+    let enter = NativeEvent::Key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+    let input = Keys(VecDeque::from([Some(enter.clone()), Some(enter)]));
+    let mut output = Terminal::new(TestBackend::new(100, 35)).unwrap();
+    let mut host = TuiTerminal::new(&mut output, input, |_, feedback| {
+        feedback.alert = Some(("Alert".into(), "Dismiss before continuing".into()));
+        Ok(())
+    });
+    assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+    let fixture: serde_json::Value =
+        serde_json::from_str(vauchi_contract::fixtures::presentation_contract_v1_json()).unwrap();
+    let surface_id = match &commands()[0] {
+        Command::ReplaceSurface { surface } => surface.surface_id.clone(),
+        other => panic!("unexpected fixture command: {other:?}"),
+    };
+    let expected = vec![
+        vauchi_contract::Event::SurfaceActivated { surface_id },
+        serde_json::from_value(fixture["steps"][0]["event"].clone()).unwrap(),
+    ];
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(expected)
+    );
+}

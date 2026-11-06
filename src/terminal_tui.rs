@@ -119,6 +119,13 @@ where
                 if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
                     return Ok(ControlFlow::Break(()));
                 }
+                if self.feedback.alert.is_some() {
+                    if matches!(key.code, KeyCode::Esc | KeyCode::Enter) {
+                        self.feedback.alert = None;
+                        self.draw()?;
+                    }
+                    return Ok(ControlFlow::Continue(vec![]));
+                }
                 match self.session.handle_key(key) {
                     KeyOutcome::Events(events) => return Ok(ControlFlow::Continue(events)),
                     KeyOutcome::Quit => return Ok(ControlFlow::Break(())),
