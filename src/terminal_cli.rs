@@ -63,6 +63,9 @@ where
             writeln!(self.output, "{title}\n{message}\n  Enter > ")?;
         } else if let Some(prompt) = &self.prompt {
             write!(self.output, "{}", prompt.prompt())?;
+            if self.input.is_terminal() && !prompt.is_secret() {
+                self.output.write_all(&self.line)?;
+            }
         }
         self.output.flush()
     }
@@ -124,6 +127,12 @@ where
     }
 
     fn wait_input(&mut self, timeout: Duration) -> io::Result<ControlFlow<(), Vec<Event>>> {
+        if self.prompt.is_none() && !self.ended {
+            let prompt = LinePrompt::new(&self.state, &mut self.offered)?;
+            write!(self.output, "{}", prompt.prompt())?;
+            self.output.flush()?;
+            self.prompt = Some(prompt);
+        }
         if self.queued.is_empty() && !self.ended {
             match self.input.read(timeout)? {
                 InputChunk::Idle => return Ok(ControlFlow::Continue(vec![])),

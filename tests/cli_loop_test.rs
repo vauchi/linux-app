@@ -19,6 +19,9 @@ impl LineInput for Input {
         assert_eq!(timeout, Duration::from_millis(50));
         Ok(self.0.pop_front().expect("unexpected read"))
     }
+    fn is_terminal(&self) -> bool {
+        true
+    }
 }
 
 fn commands(secret: bool) -> Vec<Command> {
@@ -189,4 +192,52 @@ fn invalid_utf8_and_oversized_lines_fail_explicitly() {
             kind
         );
     }
+}
+
+// @internal — a Core event may produce no immediate command batch.
+#[test]
+fn buffered_input_resumes_after_an_event_without_a_repaint() {
+    let mut output = Vec::new();
+    let input = Input(VecDeque::from([InputChunk::Data(
+        b"Alice\n1\nBob\n".to_vec(),
+    )]));
+    let mut terminal = CliTerminal::new(&mut output, input, |_, _| Ok(()));
+    assert_eq!(
+        terminal.render(&commands(false)).unwrap(),
+        ControlFlow::Continue(())
+    );
+    assert_eq!(
+        submitted(terminal.wait_input(Duration::from_millis(50)).unwrap()),
+        "Alice"
+    );
+    assert_eq!(
+        terminal.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+    assert_eq!(
+        submitted(terminal.wait_input(Duration::from_millis(50)).unwrap()),
+        "Bob"
+    );
+}
+
+// @internal — identical snapshots must not erase the visible unfinished line.
+#[test]
+fn identical_repaint_keeps_the_pending_input_visible() {
+    let mut output = Vec::new();
+    let input = Input(VecDeque::from([InputChunk::Data(b"Ali".to_vec())]));
+    let mut terminal = CliTerminal::new(&mut output, input, |_, _| Ok(()));
+    assert_eq!(
+        terminal.render(&commands(false)).unwrap(),
+        ControlFlow::Continue(())
+    );
+    assert_eq!(
+        terminal.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+    assert_eq!(
+        terminal.render(&commands(false)).unwrap(),
+        ControlFlow::Continue(())
+    );
+    drop(terminal);
+    assert!(String::from_utf8(output).unwrap().ends_with("Entry > Ali"));
 }
