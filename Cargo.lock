@@ -2668,8 +2668,8 @@ checksum = "d68782463e408eb1e668cf6152704bd856c78c5b6417adaee3203d8f4c1fc9ec"
 
 [[package]]
 name = "qt-display"
-version = "0.1.0"
-source = "git+https://gitlab.com/vauchi/linux-qt.git?tag=qt-display-v0.1.0#21c159bc3060cb920bd3f4f7b6f93ba2f3849ec5"
+version = "0.1.1"
+source = "git+https://gitlab.com/vauchi/linux-qt.git?tag=qt-display-v0.1.1#bd6729e13894a83e10aeddda782ef814aba91dce"
 dependencies = [
  "cmake",
 ]
