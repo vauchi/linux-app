@@ -219,7 +219,13 @@ fn main() {
         }
         let catalog_window = Rc::new(build_app_window(app, width, height));
         catalog_window.window.present();
-        drive_jobs(app, catalog_window, jobs.clone(), themes.clone());
+        drive_jobs(
+            app,
+            catalog_window,
+            jobs.clone(),
+            themes.clone(),
+            (width, height),
+        );
     });
 
     let no_args: [String; 0] = [];
@@ -323,6 +329,7 @@ fn drive_jobs(
     window: Rc<CatalogWindow>,
     mut jobs: VecDeque<Rc<Job>>,
     themes: Rc<Themes>,
+    viewport: (i32, i32),
 ) {
     let Some(first) = jobs.pop_front() else {
         eprintln!("[render-catalog] nothing to render");
@@ -355,15 +362,17 @@ fn drive_jobs(
             return glib::ControlFlow::Continue;
         }
 
-        let Some(next) = queue.borrow_mut().pop_front() else {
+        if queue.borrow().is_empty() {
             app.quit();
             return glib::ControlFlow::Break;
-        };
-        start_job(&next, &themes, &window);
-        settle_after_replay(&settled);
-        *current.borrow_mut() = next;
-        frames.set(0);
-        glib::ControlFlow::Continue
+        }
+        // GTK retains a window enlarged by a previous screen's minimum size (#1102).
+        let fresh = Rc::new(build_app_window(&app, viewport.0, viewport.1));
+        fresh.window.present();
+        let remaining = std::mem::take(&mut *queue.borrow_mut());
+        drive_jobs(&app, fresh, remaining, themes.clone(), viewport);
+        window.window.close();
+        glib::ControlFlow::Break
     });
 }
 
