@@ -10,8 +10,21 @@ a display shell with Core and the Linux hardware shell
 | Binary | Display shell | Hardware shell |
 |---|---|---|
 | `gvauchi` | GTK (`linux-gtk`, renamed `gtk-display` in step 4) | `linux-hw` |
+| `qvauchi` | Qt (`qt-display`) | `linux-hw` |
+| `vauchi-tui` | TUI | `linux-hw` |
 
-Qt, CLI and TUI follow (`qvauchi`, `vauchi`, `vauchi-tui`).
+The CLI binary follows. GTK remains the default pairing. To build and run
+Qt from the workspace without GTK:
+
+```sh
+just exec-in-repo linux-app 'cargo run --no-default-features --features qt --bin qvauchi'
+```
+
+The Qt dependency pins the stable `qt-display-v0.1.0` tag. Its GUI-thread
+poll advances Core invalidations and hardware observations while idle;
+native events use the contract's bounded JSON decoder. Qt owns presentation
+and permission dialogs, while Core owns permission state and settings
+guidance. Camera preview remains separate work.
 
 The app holds no behaviour: [`src/wiring.rs`](src/wiring.rs) starts the
 hardware shell and hands it to the display shell, and CI's

@@ -238,10 +238,26 @@ test:shared:
     - bash ci/tests/headless-dependencies.test.sh tui
     - bash ci/tests/headless-dependencies.test.sh cli,tui
     - if bash ci/tests/headless-dependencies.test.sh gtk; then echo "FAIL — graph guard accepted GTK"; exit 1; fi
+    - if bash ci/tests/headless-dependencies.test.sh qt; then echo "FAIL — graph guard accepted Qt"; exit 1; fi
     - cargo test --locked --no-default-features --lib --test shared_engine_test --test hardware_bridge_test --test hardware_bridge_lifecycle_test --test bridge_invalidation_test --test terminal_loop_test --test terminal_shutdown_test
     - cargo check --locked --no-default-features --all-targets
     - cargo test --locked --no-default-features --features cli,tui --all-targets
     - cargo clippy --locked --no-default-features --features cli,tui --all-targets -- -D warnings
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+test:qt:
+  extends: [.linux-runner, .timeout-cold-rebuild]
+  stage: test
+  before_script:
+    - !reference [.self-hosted, before_script]
+  script:
+    - bash ci/tests/qt-dependencies.test.sh
+    - if bash ci/tests/qt-dependencies.test.sh qt,gtk; then echo "FAIL — Qt graph guard accepted GTK"; exit 1; fi
+    - if bash ci/tests/qt-dependencies.test.sh ''; then echo "FAIL — Qt graph guard accepted missing display"; exit 1; fi
+    - cargo test --locked --no-default-features --features qt --all-targets
+    - cargo clippy --locked --no-default-features --features qt --all-targets -- -D warnings
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
