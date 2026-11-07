@@ -203,10 +203,6 @@ criteria = "safe-to-deploy"
 version = "1.9.1"
 criteria = "safe-to-deploy"
 
-[[exemptions.clap]]
-version = "4.6.7"
-criteria = "safe-to-deploy"
-
 [[exemptions.clap_builder]]
 version = "4.6.7"
 criteria = "safe-to-deploy"

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use clap::Command as CliArguments;
+use clap_builder::Command as CliArguments;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     CliArguments::new("vauchi")
