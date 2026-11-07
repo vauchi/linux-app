@@ -12,6 +12,8 @@ pub mod storage;
 pub mod terminal;
 #[cfg(feature = "cli")]
 pub mod terminal_cli;
+#[cfg(any(feature = "cli", feature = "tui"))]
+mod terminal_signals;
 #[cfg(feature = "tui")]
 pub mod terminal_tui;
 pub mod wiring;

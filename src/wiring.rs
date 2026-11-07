@@ -250,12 +250,13 @@ pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
     let engine = start_shared_engine(false)?;
     let hardware = LinuxHardware::start()?;
     let bridge = HardwareBridge::new(engine, hardware)?;
+    let shutdown = crate::terminal_signals::SignalShutdown::new()?;
     let mode = TerminalMode::enter()?;
     let backend = ratatui_crossterm::CrosstermBackend::new(std::io::stdout());
     let mut output = ratatui_core::terminal::Terminal::new(backend)?;
     let mut terminal =
         TuiTerminal::new(&mut output, CrosstermEvents, terminal_feedback).with_mode(mode);
-    crate::terminal::run_terminal(bridge, &mut terminal)?;
+    crate::terminal::run_terminal_with_shutdown(bridge, &mut terminal, || shutdown.requested())?;
     Ok(())
 }
 
@@ -287,10 +288,11 @@ pub fn run_cli() -> Result<(), Box<dyn std::error::Error>> {
     let engine = start_shared_engine(false)?;
     let hardware = LinuxHardware::start()?;
     let bridge = HardwareBridge::new(engine, hardware)?;
+    let shutdown = crate::terminal_signals::SignalShutdown::new()?;
     let input = FdInput::new(std::io::stdin())?;
     let mut output = std::io::stdout();
     let mut terminal = CliTerminal::new(&mut output, input, terminal_feedback);
-    crate::terminal::run_terminal(bridge, &mut terminal)?;
+    crate::terminal::run_terminal_with_shutdown(bridge, &mut terminal, || shutdown.requested())?;
     Ok(())
 }
 

@@ -31,14 +31,23 @@ pub trait TerminalIo {
 /// Own the hardware for the loop's lifetime, including error and exit paths.
 /// Input adapters must honor the bounded wait so background events progress.
 pub fn run_terminal<E: CommandEngine>(
+    bridge: HardwareBridge<E>,
+    terminal: &mut impl TerminalIo,
+) -> io::Result<()> {
+    run_terminal_with_shutdown(bridge, terminal, || false)
+}
+
+/// Honor shutdown between bounded waits and restore the terminal before hardware teardown.
+pub fn run_terminal_with_shutdown<E: CommandEngine>(
     mut bridge: HardwareBridge<E>,
     terminal: &mut impl TerminalIo,
+    shutdown_requested: impl Fn() -> bool,
 ) -> io::Result<()> {
     let mut guard = RestoreTerminal {
         terminal,
         active: true,
     };
-    let result = run_loop(&mut bridge, guard.terminal);
+    let result = run_loop(&mut bridge, guard.terminal, shutdown_requested);
     guard.active = false;
     let restored = guard.terminal.restore();
     result.and(restored)
@@ -60,14 +69,22 @@ impl<T: TerminalIo> Drop for RestoreTerminal<'_, T> {
 fn run_loop<E: CommandEngine>(
     bridge: &mut HardwareBridge<E>,
     terminal: &mut impl TerminalIo,
+    shutdown_requested: impl Fn() -> bool,
 ) -> io::Result<()> {
-    loop {
+    while !shutdown_requested() {
         bridge.poll().map_err(io::Error::other)?;
         let commands = bridge.take_commands();
-        if !commands.is_empty() && terminal.render(&commands)?.is_break() {
+        if !commands.is_empty() {
+            let rendered = terminal.render(&commands);
+            if shutdown_requested() || rendered?.is_break() {
+                return Ok(());
+            }
+        }
+        let input = terminal.wait_input(Duration::from_millis(50));
+        if shutdown_requested() {
             return Ok(());
         }
-        match terminal.wait_input(Duration::from_millis(50))? {
+        match input? {
             ControlFlow::Break(()) => return Ok(()),
             ControlFlow::Continue(events) => {
                 for event in events {
@@ -76,4 +93,5 @@ fn run_loop<E: CommandEngine>(
             }
         }
     }
+    Ok(())
 }

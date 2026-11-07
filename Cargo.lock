@@ -3943,6 +3943,7 @@ dependencies = [
  "ratatui-crossterm",
  "rustix 1.1.6",
  "serde_json",
+ "signal-hook",
  "tempfile",
  "vauchi-app",
  "vauchi-cli-display",
