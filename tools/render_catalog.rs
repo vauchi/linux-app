@@ -250,7 +250,6 @@ fn plan_jobs(screens: Vec<CatalogScreen>, out_dir: &Path) -> VecDeque<Rc<Job>> {
 }
 
 struct CatalogWindow {
-    capture_size: (i32, i32),
     window: adw::ApplicationWindow,
     /// Everything inside the window frame — the capture target.
     root: GtkBox,
@@ -314,7 +313,6 @@ fn build_app_window(app: &adw::Application, width: i32, height: i32) -> CatalogW
         .content(&root)
         .build();
     CatalogWindow {
-        capture_size: (width, height),
         window,
         root,
         replay_target: content,
@@ -408,11 +406,6 @@ fn start_job(job: &Job, themes: &Themes, window: &CatalogWindow) {
         &toast_overlay,
         job.variant.repaint(themes, job.screen.commands.clone()),
     );
-    // GTK remembers enlargement from an earlier screen's minimum size.
-    // Each catalog image must start from the requested viewport again.
-    window
-        .window
-        .set_default_size(window.capture_size.0, window.capture_size.1);
 }
 
 fn usage() -> ! {
