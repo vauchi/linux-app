@@ -3947,8 +3947,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-linux-hw"
-version = "0.100.0"
-source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.100.0#bc359554cfe74a8b68411b70db6d69529ad78770"
+version = "0.100.1"
+source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.100.1#e7b691d4d817ab598ec559b46a61c937359b8edd"
 dependencies = [
  "alsa",
  "futures-util",
