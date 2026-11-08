@@ -6,9 +6,10 @@
 
 include:
   - project: 'vauchi/scripts'
-    ref: 6f3f3ce7227b015d40cd03d44a78583d039b28ec
+    ref: efd6baeeb47b1f314b0a1b0b2d59ce1f98d76a54
     file:
       - '/ci-templates/rust-base.yml'
+      - '/ci-templates/allow-git.yml'
       - '/ci-templates/release.yml'
       - '/ci-templates/security.yml'
       - '/ci-templates/mr-rules.yml'
@@ -18,7 +19,7 @@ include:
       - '/ci-templates/tool-install.yml'
 
 variables:
-  VAUCHI_SCRIPTS_REF: "6f3f3ce7227b015d40cd03d44a78583d039b28ec"
+  VAUCHI_SCRIPTS_REF: "efd6baeeb47b1f314b0a1b0b2d59ce1f98d76a54"
   # Same advisory as linux-gtk: paste unmaintained, reached through nokhwa.
   AUDIT_IGNORES: "--ignore RUSTSEC-2024-0436"
 
@@ -267,6 +268,11 @@ security:audit:
 
 security:deny:
   extends: [.linux-runner-readonly, .security-deny-job]
+
+# deny.toml's git sources match the reviewed list in vauchi/scripts
+# policy/allowed-git-sources.txt (vauchi/private#1162).
+check:allow-git:
+  extends: [.allow-git-drift-job]
 
 security:vet:
   extends: [.linux-runner-readonly, .security-vet-job]
