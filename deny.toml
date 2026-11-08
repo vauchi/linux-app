@@ -100,4 +100,5 @@ allow-git = [
     "https://gitlab.com/vauchi/cli.git",
     "https://gitlab.com/vauchi/tui.git",
     "https://gitlab.com/vauchi/utils/rqrr.git",
+    "https://gitlab.com/vauchi/utils/spake2.git",
 ]
