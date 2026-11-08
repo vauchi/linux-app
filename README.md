@@ -20,7 +20,7 @@ Qt from the workspace without GTK:
 just exec-in-repo linux-app 'cargo run --no-default-features --features qt --bin qvauchi'
 ```
 
-The Qt dependency pins the stable `qt-display-v0.1.2` tag. Its GUI-thread
+The Qt dependency pins the stable `qt-display-v0.1.3` tag. Its GUI-thread
 poll advances Core invalidations and hardware observations while idle;
 native events use the contract's bounded JSON decoder. Qt owns presentation
 and permission dialogs, while Core owns permission state and settings
