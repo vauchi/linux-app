@@ -30,6 +30,7 @@ stages:
   - test
   - security
   - package
+  - publish
 
 # A version bump merged to main is the release: the job pushes
 # v<Cargo.toml version> when that tag does not exist yet, so the tag always
@@ -374,6 +375,99 @@ package:appimage:
     paths:
       - "gvauchi-*-x86_64.AppImage"
     expire_in: 1 week
+
+# Preview downloads for the first real-user pilot (vauchi/private#1190): the
+# GTK AppImage and the terminal binaries of this assembly, signed keyless with
+# the tag pipeline's GitLab identity (owner 2026-11-09; no long-lived key
+# leaves core's release jobs). A merge request may run them by hand: they
+# sign and verify but upload nothing without a tag.
+build:terminal:
+  extends: [.linux-runner, .timeout-cold-rebuild]
+  stage: build
+  before_script:
+    - !reference [.self-hosted, before_script]
+  script:
+    - cargo build --release --locked --no-default-features --features cli,tui
+        --bin vauchi --bin vauchi-tui
+  artifacts:
+    paths:
+      - target/release/vauchi
+      - target/release/vauchi-tui
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+
+publish:preview:
+  stage: publish
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/alpine:3.21
+  tags: [docker]
+  interruptible: false
+  needs:
+    - job: package:appimage
+      artifacts: true
+    - job: build:terminal
+      artifacts: true
+  id_tokens:
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  variables:
+    COSIGN_VERSION: "v3.0.5"
+    # sigstore/cosign v3.0.5 cosign_checksums.txt; its Windows line matches
+    # the windows repo's pin.
+    COSIGN_SHA256: "db15cc99e6e4837daabab023742aaddc3841ce57f193d11b7c3e06c8003642b2"
+  before_script:
+    - apk add --no-cache curl coreutils tar
+    - |
+      status=$(curl -sL -o /usr/local/bin/cosign -w '%{http_code}' \
+        "https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64") || status=000
+      [ "$status" = 200 ] || { echo "FAIL: cosign download → HTTP $status"; exit 1; }
+      echo "${COSIGN_SHA256}  /usr/local/bin/cosign" | sha256sum -c -
+      chmod +x /usr/local/bin/cosign
+  script:
+    - sh ci/publish-preview.sh
+  artifacts:
+    paths:
+      - preview/
+    expire_in: 30 days
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+
+release:preview:
+  stage: publish
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.24.0
+  tags: [docker]
+  interruptible: false
+  needs:
+    - job: publish:preview
+  variables:
+    PREVIEW_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/vauchi-linux-preview/${CI_COMMIT_TAG}"
+  script:
+    - echo "Release ${CI_COMMIT_TAG} links the signed preview downloads"
+  release:
+    tag_name: $CI_COMMIT_TAG
+    name: "Linux preview $CI_COMMIT_TAG"
+    description: >-
+      Preview build for testers: not ready for everyday use. Linux x86_64
+      only. Verify a download with
+      `cosign verify-blob --bundle FILE.sigstore.json
+      --certificate-identity-regexp '^https://gitlab\.com/vauchi/linux-app//\.gitlab-ci\.yml@refs/tags/v'
+      --certificate-oidc-issuer https://gitlab.com FILE`.
+    assets:
+      links:
+        - name: "GTK app (AppImage)"
+          url: "${PREVIEW_URL}/gvauchi-${CI_COMMIT_TAG}-x86_64.AppImage"
+        - name: "Terminal apps (vauchi, vauchi-tui)"
+          url: "${PREVIEW_URL}/vauchi-terminal-${CI_COMMIT_TAG}-linux-x86_64.tar.gz"
+        - name: "SHA256SUMS"
+          url: "${PREVIEW_URL}/SHA256SUMS"
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
 
 # ============================================================
 # Deploy Stage — Badge Pages
