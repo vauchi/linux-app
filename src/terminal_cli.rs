@@ -4,14 +4,12 @@
 //! Line-oriented CLI display with bounded native input waits.
 
 use crate::terminal::{TerminalFeedback, TerminalIo};
+use cli_display::presentation::{LinePrompt, OfferedInputs, PresentationState, render_to_string};
 use std::{
     collections::VecDeque,
     io::{self, Write},
     ops::ControlFlow,
     time::Duration,
-};
-use vauchi_cli_display::presentation::{
-    LinePrompt, OfferedInputs, PresentationState, render_to_string,
 };
 use vauchi_contract::{Command, Event};
 

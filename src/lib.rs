@@ -19,6 +19,6 @@ pub mod terminal_tui;
 pub mod wiring;
 
 #[cfg(feature = "cli")]
-pub use vauchi_cli_display as cli_display;
+pub use ::cli_display;
 #[cfg(feature = "tui")]
-pub use vauchi_tui_display as tui_display;
+pub use ::tui_display;

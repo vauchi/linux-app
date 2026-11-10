@@ -6,8 +6,8 @@
 use crossterm::event::{self, Event as NativeEvent, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui_core::{backend::Backend, terminal::Terminal};
 use std::{io, ops::ControlFlow, time::Duration};
+use tui_display::{SessionView, TerminalSession, ui::presentation_input::KeyOutcome};
 use vauchi_contract::{Command, Event};
-use vauchi_tui_display::{SessionView, TerminalSession, ui::presentation_input::KeyOutcome};
 
 use crate::terminal::TerminalIo;
 
