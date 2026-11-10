@@ -46,8 +46,8 @@ required-features = ["cli"]
 [dependencies]
 # Core, the hardware shell and the display shell all on contract v0.97.2
 # (ADR-078 decision 6); deny.toml refuses a second copy of any of them (D-5).
-vauchi-core = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.102.2", version = "=0.102.2", features = ["secure-storage-linux"] }
-vauchi-app = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.102.2", version = "=0.102.2" }
+vauchi-core = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.103.0", version = "=0.103.0", features = ["secure-storage-linux"] }
+vauchi-app = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.103.0", version = "=0.103.0" }
 vauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.97.2", version = "=0.97.2" }
 # gio's NetworkMonitor for the network-cost report; the same gtk4 the
 # display shell links (deny.toml refuses a second copy).
