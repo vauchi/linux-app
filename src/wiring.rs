@@ -233,15 +233,25 @@ pub fn core_version() -> &'static str {
     vauchi_core::VERSION
 }
 
+/// Removes every `--reset-for-testing` and reports whether there was one, so
+/// the toolkit's argument parser never sees the flag.
+pub fn take_reset_for_testing(args: Vec<String>) -> (Vec<String>, bool) {
+    let before = args.len();
+    let kept: Vec<String> = args
+        .into_iter()
+        .filter(|arg| arg != "--reset-for-testing")
+        .collect();
+    let requested = kept.len() != before;
+    (kept, requested)
+}
+
 #[cfg(feature = "qt")]
 pub fn run_qt() -> Result<i32, Box<dyn std::error::Error>> {
-    let engine = start_shared_engine(false)?;
+    let (args, reset_for_testing) = take_reset_for_testing(std::env::args().collect());
+    let engine = start_shared_engine(reset_for_testing)?;
     let hardware = LinuxHardware::start()?;
     let bridge = HardwareBridge::new(engine, hardware)?;
-    Ok(crate::qt::run(
-        &std::env::args().collect::<Vec<_>>(),
-        bridge,
-    )?)
+    Ok(crate::qt::run(&args, bridge)?)
 }
 
 #[cfg(feature = "tui")]
