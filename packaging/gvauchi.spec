@@ -22,6 +22,7 @@ BuildRequires:  qrencode-devel
 BuildRequires:  pkgconfig
 
 Requires:       gtk4
+Conflicts:      qvauchi
 Obsoletes:      vauchi-gtk < 0.8.0
 Provides:       vauchi-gtk = %{version}-%{release}
 Requires:       libadwaita

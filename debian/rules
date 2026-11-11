@@ -7,8 +7,11 @@ export CARGO_HOME = $(CURDIR)/debian/.cargo
 %:
 	dh $@
 
+# gvauchi and qvauchi conflict: both use one data directory (private#1029).
+# The Qt binary builds without the GTK feature, as test:qt requires.
 override_dh_auto_build:
 	cargo build --release --bin gvauchi
+	cargo build --release --no-default-features --features qt --bin qvauchi
 
 override_dh_auto_install:
 	install -Dm 755 target/release/gvauchi \
@@ -24,6 +27,20 @@ override_dh_auto_install:
 	install -d debian/gvauchi/usr/share/fonts/truetype/vauchi
 	install -m 644 data/fonts/*.ttf \
 		debian/gvauchi/usr/share/fonts/truetype/vauchi/
+	install -Dm 755 target/release/qvauchi \
+		debian/qvauchi/usr/bin/qvauchi
+	install -d debian/qvauchi/usr/share/applications
+	sed -e 's/^Exec=gvauchi /Exec=qvauchi /' -e '/^DBusActivatable=/d' \
+		-e 's/^Categories=Network;ContactManagement;GTK;$$/Categories=Network;ContactManagement;Qt;/' \
+		data/app.vauchi.Vauchi.desktop \
+		> debian/qvauchi/usr/share/applications/app.vauchi.Vauchi.desktop
+	install -Dm 644 data/app.vauchi.Vauchi.metainfo.xml \
+		debian/qvauchi/usr/share/metainfo/app.vauchi.Vauchi.metainfo.xml
+	install -Dm 644 data/app.vauchi.Vauchi.svg \
+		debian/qvauchi/usr/share/icons/hicolor/scalable/apps/app.vauchi.Vauchi.svg
+	install -d debian/qvauchi/usr/share/fonts/truetype/vauchi
+	install -m 644 data/fonts/*.ttf \
+		debian/qvauchi/usr/share/fonts/truetype/vauchi/
 
 override_dh_auto_test:
 	# Tests require a running D-Bus session and display; skip in build.

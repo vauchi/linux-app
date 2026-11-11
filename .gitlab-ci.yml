@@ -296,11 +296,14 @@ package:deb:
     - apt-get install -y -qq devscripts debhelper
         libgtk-4-dev libadwaita-1-dev libqrencode-dev pkg-config
         libasound2-dev libdbus-1-dev libclang-dev libfontconfig1-dev
+        qt6-base-dev cmake g++
   script:
     # -d: debian/control's Build-Depends name Debian's cargo and rustc,
     # which this image replaces with the pinned toolchain.
     - dpkg-buildpackage -us -uc -b -d
     - mkdir -p deb-out && cp ../*.deb deb-out/
+    # gvauchi and qvauchi: one or the other, each starting its own binary.
+    - sh ci/tests/packages.test.sh deb-out
   artifacts:
     paths:
       - deb-out/*.deb
@@ -324,16 +327,20 @@ package:rpm:
   before_script:
     - dnf install -y rpm-build cargo rust gtk4-devel libadwaita-devel
         qrencode-devel pkgconfig alsa-lib-devel dbus-devel clang-devel
-        fontconfig-devel
+        fontconfig-devel qt6-qtbase-devel cmake gcc-c++
   script:
     - mkdir -p rpmbuild/{SOURCES,SPECS}
     # The tarball follows Cargo.toml; a spec Version that disagrees fails
-    # rpmbuild, which is the check that both moved.
+    # rpmbuild, which is the check that both moved. gvauchi and qvauchi are
+    # two specs: both install app.vauchi.Vauchi.desktop with another Exec.
     - VERSION=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)
-    - tar czf "rpmbuild/SOURCES/gvauchi-${VERSION}.tar.gz"
-        --transform "s,^,gvauchi-${VERSION}/," --exclude=rpmbuild .
-    - cp packaging/gvauchi.spec rpmbuild/SPECS/
-    - rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/gvauchi.spec
+    - |
+      for app in gvauchi qvauchi; do
+        tar czf "rpmbuild/SOURCES/${app}-${VERSION}.tar.gz" \
+          --transform "s,^,${app}-${VERSION}/," --exclude=rpmbuild .
+        cp "packaging/${app}.spec" rpmbuild/SPECS/
+        rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb "rpmbuild/SPECS/${app}.spec"
+      done
     - mkdir -p rpm-out && cp rpmbuild/RPMS/**/*.rpm rpm-out/
   artifacts:
     paths:
@@ -342,7 +349,7 @@ package:rpm:
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes: [packaging/gvauchi.spec]
+      changes: [packaging/gvauchi.spec, packaging/qvauchi.spec]
     - when: manual
       allow_failure: true
 

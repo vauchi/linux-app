@@ -16,6 +16,9 @@ Build-Depends: debhelper-compat (= 13),
                libqrencode-dev,
                libfontconfig1-dev,
                libglib2.0-dev-bin,
+               qt6-base-dev,
+               cmake,
+               g++,
                pkg-config
 Standards-Version: 4.6.2
 Homepage: https://vauchi.app
@@ -26,6 +29,7 @@ Rules-Requires-Root: no
 Package: gvauchi
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: qvauchi
 Replaces: vauchi-gtk
 Breaks: vauchi-gtk
 Provides: vauchi-gtk
@@ -34,3 +38,17 @@ Description: Privacy-focused updatable contact cards (GTK desktop)
  End-to-end encrypted and decentralized. This package provides
  gvauchi, the native Linux desktop client built with GTK4 and
  libadwaita. It replaces the vauchi-gtk package.
+
+Package: qvauchi
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: gvauchi
+Replaces: vauchi-qt
+Breaks: vauchi-qt
+Provides: vauchi-qt
+Description: Privacy-focused updatable contact cards (Qt desktop)
+ Vauchi lets you exchange updatable contact cards in person.
+ End-to-end encrypted and decentralized. This package provides
+ qvauchi, the native Linux desktop client built with Qt 6. It replaces
+ the vauchi-qt package. Install gvauchi or qvauchi, not both: they share
+ one data directory.
