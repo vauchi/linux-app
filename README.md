@@ -9,7 +9,7 @@ a display shell with Core and the Linux hardware shell
 
 | Binary | Display shell | Hardware shell |
 |---|---|---|
-| `gvauchi` | GTK (`linux-gtk`, renamed `gtk-display` in step 4) | `linux-hw` |
+| `gvauchi` | GTK (`gtk-display`) | `linux-hw` |
 | `qvauchi` | Qt (`qt-display`) | `linux-hw` |
 | `vauchi-tui` | TUI | `linux-hw` |
 

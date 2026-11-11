@@ -6,7 +6,7 @@
 
 include:
   - project: 'vauchi/scripts'
-    ref: efd6baeeb47b1f314b0a1b0b2d59ce1f98d76a54
+    ref: 936f83ab1e36613b7e84c85a169ebadceaa537a1
     file:
       - '/ci-templates/rust-base.yml'
       - '/ci-templates/allow-git.yml'
@@ -19,7 +19,7 @@ include:
       - '/ci-templates/tool-install.yml'
 
 variables:
-  VAUCHI_SCRIPTS_REF: "efd6baeeb47b1f314b0a1b0b2d59ce1f98d76a54"
+  VAUCHI_SCRIPTS_REF: "936f83ab1e36613b7e84c85a169ebadceaa537a1"
   # Same advisory as linux-gtk: paste unmaintained, reached through nokhwa.
   AUDIT_IGNORES: "--ignore RUSTSEC-2024-0436"
 

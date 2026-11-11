@@ -55,10 +55,10 @@ gtk4 = { version = "0.9", optional = true }
 # The catalog renderer's window chrome; the version gtk-display links.
 libadwaita = { version = "0.7", features = ["v1_4"], optional = true }
 vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.100.1", version = "=0.100.1", features = ["audio", "camera", "mdns"] }
-# The GTK display shell; its repository is still `linux-gtk` and its crate
-# `vauchi-gtk` until the rename (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/linux-gtk.git", tag = "v0.10.0", version = "=0.10.0", optional = true }
-qt-display = { git = "https://gitlab.com/vauchi/linux-qt.git", tag = "qt-display-v0.1.3", version = "=0.1.3", optional = true }
+# The GTK display shell, repository `gtk-display` since 2026-11-11; its
+# crate is still `vauchi-gtk` (ADR-078 step 4).
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.10.0", version = "=0.10.0", optional = true }
+qt-display = { git = "https://gitlab.com/vauchi/qt-display.git", tag = "qt-display-v0.1.3", version = "=0.1.3", optional = true }
 serde_json = "1"
 cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi/cli.git", tag = "v0.1.3", version = "=0.2.0", optional = true }
 rustix = { version = "1.1", features = ["event", "termios"], optional = true }
