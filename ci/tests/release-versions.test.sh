@@ -15,6 +15,7 @@ write_fixture() {
     printf '[package]\nname = "vauchi-linux-app"\nversion = "%s"\n' "$1" > "$fixture/Cargo.toml"
     printf 'gvauchi (%s-1) unstable; urgency=medium\n' "$2" > "$fixture/debian/changelog"
     printf 'Name: gvauchi\nVersion: %s\n' "$3" > "$fixture/packaging/gvauchi.spec"
+    printf 'Name: qvauchi\nVersion: %s\n' "${4:-$3}" > "$fixture/packaging/qvauchi.spec"
 }
 
 expect_failure() {
@@ -53,5 +54,10 @@ expect_failure 'Cannot read Debian package version'
 write_fixture 0.10.1 0.10.1 0.10.1
 rm "$fixture/packaging/gvauchi.spec"
 expect_failure 'Missing packaging/gvauchi.spec'
+write_fixture 0.10.1 0.10.1 0.10.1 0.8.1
+expect_failure 'RPM package version 0.8.1 (qvauchi) differs from Cargo 0.10.1'
+write_fixture 0.10.1 0.10.1 0.10.1
+rm "$fixture/packaging/qvauchi.spec"
+expect_failure 'Missing packaging/qvauchi.spec'
 
-echo 'PASS: release metadata agrees or fails before tagging (8 cases)'
+echo 'PASS: release metadata agrees or fails before tagging (10 cases)'
