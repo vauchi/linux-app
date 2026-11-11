@@ -12,7 +12,7 @@
     <p>Exchange contact cards in person via QR code. Update your info anytime — contacts stay current automatically. End-to-end encrypted, decentralized.</p>
   </description>
   <url type="homepage">https://vauchi.app</url>
-  <url type="bugtracker">https://gitlab.com/vauchi/linux-gtk/-/issues</url>
+  <url type="bugtracker">https://gitlab.com/vauchi/linux-app/-/issues</url>
   <provides>
     <binary>gvauchi</binary>
   </provides>
