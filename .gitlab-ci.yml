@@ -115,6 +115,37 @@ test:a11y:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+build:qvauchi:
+  extends: [.linux-runner, .timeout-cold-rebuild]
+  stage: build
+  before_script:
+    - !reference [.self-hosted, before_script]
+  script:
+    - cargo build --locked --release --no-default-features --features qt --bin qvauchi
+  artifacts:
+    paths:
+      - target/release/qvauchi
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# The same AT-SPI checks for qvauchi, copied from qt-display's tests/atspi
+# before the legacy Qt app goes (private#1029, copy first, delete last).
+# The renderer probe, snapshot and screenshot tests stay in qt-display.
+test:a11y-qt:
+  stage: test
+  needs:
+    - job: build:qvauchi
+  tags: [linux, self-hosted]
+  resource_group: gtk-xvfb
+  script:
+    - chmod +x tests/atspi-qt/run-tests.sh
+    - tests/atspi-qt/run-tests.sh --tb=short
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 # Visual snapshots of gvauchi's destinations and onboarding, uploaded to
 # the Visual Regression Tracker as platform "linux-app" (owner,
 # 2026-11-03: its own baselines while linux-gtk still uploads "linux-gtk";
