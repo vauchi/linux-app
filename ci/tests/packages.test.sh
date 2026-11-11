@@ -25,7 +25,11 @@ deb_of() {
 }
 
 field() {
-    dpkg-deb --field "$1" "$2" 2>/dev/null || true
+    dpkg-deb --field "$2" "$1" 2>/dev/null || true
+}
+
+ships() {
+    dpkg-deb --contents "$1" | grep -E " \\./$2\$" >/dev/null
 }
 
 entry() {
@@ -43,14 +47,14 @@ if [ -n "$gtk" ] && [ -n "$qt" ]; then
     for relation in Replaces Breaks Provides; do
         field "$relation" "$qt" | grep -qw vauchi-qt || fail "qvauchi lacks $relation: vauchi-qt"
     done
-    dpkg-deb --contents "$qt" | grep -q ' ./usr/bin/qvauchi$' || fail "qvauchi does not ship usr/bin/qvauchi"
-    dpkg-deb --contents "$gtk" | grep -q ' ./usr/bin/gvauchi$' || fail "gvauchi does not ship usr/bin/gvauchi"
+    ships "$qt" usr/bin/qvauchi || fail "qvauchi does not ship usr/bin/qvauchi"
+    ships "$gtk" usr/bin/gvauchi || fail "gvauchi does not ship usr/bin/gvauchi"
     entry "$qt" | grep -qx 'Exec=qvauchi %u' || fail "qvauchi's desktop entry does not start qvauchi"
     entry "$gtk" | grep -qx 'Exec=gvauchi %u' || fail "gvauchi's desktop entry does not start gvauchi"
     if entry "$qt" | grep -q '^DBusActivatable=true'; then
         fail "qvauchi's desktop entry claims D-Bus activation"
     fi
-    if dpkg-deb --contents "$qt" | grep -q 'dbus-1/services/'; then
+    if dpkg-deb --contents "$qt" | grep 'dbus-1/services/' >/dev/null; then
         fail "qvauchi ships a D-Bus service file"
     fi
 fi
