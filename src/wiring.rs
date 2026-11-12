@@ -6,11 +6,11 @@
 //! belongs in a shell, never here; `lint:no-behaviour` fails the build
 //! when either appears outside this file.
 #[cfg(feature = "gtk")]
-use gtk_display::core_ui::engine_link::EngineHandle;
-#[cfg(feature = "gtk")]
-use gtk_display::core_ui::hardware_link::{HardwareLink, StartedHardware};
+use gtk_display::core_ui::engine_link::{EngineHandle, EngineLink};
 #[cfg(feature = "gtk")]
 use gtk4::gio;
+#[cfg(feature = "gtk")]
+use gtk4::glib;
 #[cfg(feature = "gtk")]
 use gtk4::prelude::*;
 #[cfg(feature = "gtk")]
@@ -18,8 +18,6 @@ use std::{cell::RefCell, rc::Rc};
 use vauchi_app::ui::AppEngine;
 use vauchi_contract::{Command, CommandTarget, Event};
 use vauchi_core::settings::NetworkCost;
-#[cfg(feature = "gtk")]
-use vauchi_linux_hw::{Backends, HostDevices};
 use vauchi_linux_hw::{ExecuteError, LinuxHardware};
 
 use crate::engine::CommandEngine;
@@ -54,6 +52,25 @@ impl<E: CommandEngine> HardwareBridge<E> {
 
     pub fn take_commands(&mut self) -> Vec<Command> {
         std::mem::take(&mut self.commands)
+    }
+
+    /// The next hardware observation, if any. A host with its own main
+    /// loop pumps it (the GTK pairing's 50 ms timer); `poll` and
+    /// `wait_for_event` cover hosts that block instead.
+    pub fn pop_event(&mut self) -> Option<Event> {
+        self.hardware.pop()
+    }
+
+    /// Whether Core invalidated the presentation since the last call.
+    pub fn invalidated(&self) -> bool {
+        self.engine.take_invalidation()
+    }
+
+    /// Core's current command projection with the hardware commands
+    /// routed away: only the display batch the renderer applies.
+    pub fn current_commands(&mut self) -> Result<Vec<Command>, ExecuteError> {
+        self.route(self.engine.initial_commands())?;
+        Ok(self.take_commands())
     }
 
     /// Process a pending repaint and one ready hardware observation.
@@ -165,12 +182,88 @@ pub fn start_shared_engine(
     Ok(CoreEngine::new(app_engine))
 }
 
+/// The GTK display's engine: the app-owned bridge (#1252). Hardware
+/// commands are routed to linux-hw before the renderer can see them, and
+/// hardware observations are pumped into Core on the GTK main loop.
+#[cfg(feature = "gtk")]
+pub struct BridgeEngine<E = CoreEngine> {
+    bridge: RefCell<HardwareBridge<E>>,
+    // The bridge consumed Core's initial invalidation token for its own
+    // snapshot; the shell still needs its boot repaint (#1252).
+    boot_repaint: std::cell::Cell<bool>,
+}
+
+#[cfg(feature = "gtk")]
+impl<E: CommandEngine + 'static> BridgeEngine<E> {
+    pub fn new(engine: E, hardware: LinuxHardware) -> Result<Rc<Self>, ExecuteError> {
+        let mut bridge = HardwareBridge::new(engine, hardware)?;
+        // The constructor routed Core's boot projection once for its
+        // hardware side effects. initial_commands() recomputes that
+        // projection on every repaint, so drop the queued copy instead
+        // of returning it twice.
+        let _ = bridge.take_commands();
+        Ok(Rc::new(Self {
+            bridge: RefCell::new(bridge),
+            boot_repaint: std::cell::Cell::new(true),
+        }))
+    }
+
+    /// Pump hardware observations every 50 ms on the main loop, as the
+    /// deleted renderer-side link did. Core's 200 ms invalidation poll
+    /// applies the display commands that come back; the timer stops once
+    /// the last handle is dropped. Call from the GTK main thread, once the
+    /// default main context exists.
+    pub fn install_hardware_pump(this: &Rc<Self>) {
+        let weak = Rc::downgrade(this);
+        glib::timeout_add_local(std::time::Duration::from_millis(50), move || {
+            let Some(this) = weak.upgrade() else {
+                return glib::ControlFlow::Break;
+            };
+            let mut bridge = this.bridge.borrow_mut();
+            while let Some(event) = bridge.pop_event() {
+                if let Err(error) = bridge.dispatch(event) {
+                    eprintln!("[linux-app] hardware event delivery failed: {error}");
+                }
+            }
+            glib::ControlFlow::Continue
+        });
+    }
+}
+
+#[cfg(feature = "gtk")]
+impl<E: CommandEngine> EngineLink for BridgeEngine<E> {
+    fn dispatch(&self, event: Event) -> Vec<Command> {
+        let mut bridge = self.bridge.borrow_mut();
+        if let Err(error) = bridge.dispatch(event) {
+            eprintln!("[linux-app] hardware command delivery failed: {error}");
+        }
+        bridge.take_commands()
+    }
+
+    fn initial_commands(&self) -> Vec<Command> {
+        let result = self.bridge.borrow_mut().current_commands();
+        match result {
+            Ok(commands) => commands,
+            Err(error) => {
+                eprintln!("[linux-app] hardware command delivery failed: {error}");
+                self.bridge.borrow_mut().take_commands()
+            }
+        }
+    }
+
+    fn take_invalidation(&self) -> bool {
+        self.boot_repaint.replace(false) || self.bridge.borrow().invalidated()
+    }
+}
+
 #[cfg(feature = "gtk")]
 pub fn start_engine() -> EngineHandle {
-    let engine: EngineHandle = Rc::new(
-        start_shared_engine(gtk_display::shell::reset_for_testing_requested())
-            .expect("Failed to initialize Vauchi backend"),
-    );
+    let engine = start_shared_engine(gtk_display::shell::reset_for_testing_requested())
+        .expect("Failed to initialize Vauchi backend");
+    let hardware = LinuxHardware::start().expect("Failed to start linux-hw");
+    let bridge = BridgeEngine::new(engine, hardware).expect("Failed to start the hardware bridge");
+    BridgeEngine::install_hardware_pump(&bridge);
+    let engine: EngineHandle = bridge;
     watch_network_cost(&engine);
     engine
 }
@@ -230,32 +323,6 @@ fn report_network_cost(engine: &EngineHandle, monitor: &gio::NetworkMonitor) {
     );
     // A platform fact: Core answers with no commands.
     let _ = engine.dispatch(Event::NetworkCostChanged { cost });
-}
-
-/// The host's hardware: probe the devices, attach a port per device.
-#[cfg(feature = "gtk")]
-pub fn start_hardware() -> Option<StartedHardware> {
-    let devices = HostDevices::probe();
-    start_hardware_with(Backends::host(&devices), devices)
-}
-
-/// The hardware shell over the given backends; `None` when its runtime
-/// cannot start, and the display shell then keeps every command.
-#[cfg(feature = "gtk")]
-pub fn start_hardware_with(backends: Backends, devices: HostDevices) -> Option<StartedHardware> {
-    let hardware = match LinuxHardware::with_backends(backends, devices) {
-        Ok(hardware) => hardware,
-        Err(error) => {
-            eprintln!("[linux-app] linux-hw did not start: {error}");
-            return None;
-        }
-    };
-    let link = LinuxHardwareLink::new(hardware);
-    let capabilities = Some(link.report());
-    Some(StartedHardware {
-        link: Rc::new(link),
-        capabilities,
-    })
 }
 
 /// The start line names the Core this binary links, so a log shows which
@@ -335,60 +402,4 @@ pub fn run_cli() -> Result<(), Box<dyn std::error::Error>> {
     let mut terminal = CliTerminal::new(&mut output, input, terminal_feedback);
     crate::terminal::run_terminal_with_shutdown(bridge, &mut terminal, || shutdown.requested())?;
     Ok(())
-}
-
-#[cfg(feature = "gtk")]
-struct LinuxHardwareLink(RefCell<LinuxHardware>);
-
-#[cfg(feature = "gtk")]
-impl LinuxHardwareLink {
-    fn new(hardware: LinuxHardware) -> Self {
-        Self(RefCell::new(hardware))
-    }
-
-    /// The capabilities to report to Core once, at start.
-    fn report(&self) -> Event {
-        self.0.borrow().report()
-    }
-}
-
-/// The commands linux-hw has a port for (`HardwareShell::execute`).
-#[cfg(feature = "gtk")]
-fn ported(command: &Command) -> bool {
-    matches!(
-        command,
-        Command::BleStartScanning { .. }
-            | Command::BleStopScanning
-            | Command::BleStartAdvertising { .. }
-            | Command::BleStopAdvertising
-            | Command::BleConnect { .. }
-            | Command::BleWriteCharacteristic { .. }
-            | Command::BleReadCharacteristic { .. }
-            | Command::BleDisconnect { .. }
-            | Command::NfcActivate { .. }
-            | Command::NfcSendApdu { .. }
-            | Command::NfcDeactivate
-            | Command::AudioEmitChallenge { .. }
-            | Command::AudioListenForResponse { .. }
-            | Command::AudioStop
-            | Command::CameraCapture { .. }
-            | Command::CameraStop { .. }
-            | Command::DirectSend { .. }
-    )
-}
-
-#[cfg(feature = "gtk")]
-impl HardwareLink for LinuxHardwareLink {
-    fn execute(&self, command: &Command) -> bool {
-        if !ported(command) {
-            return false;
-        }
-        // A port without a device answers Unsupported: report nothing.
-        let _ = self.0.borrow_mut().execute(command.clone());
-        true
-    }
-
-    fn pop(&self) -> Option<Event> {
-        self.0.borrow_mut().pop()
-    }
 }

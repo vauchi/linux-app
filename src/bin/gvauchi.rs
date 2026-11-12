@@ -10,8 +10,5 @@ fn main() {
     if let Some(resource_dir) = std::env::var_os("VAUCHI_LOCALES_DIR") {
         let _ = vauchi_app::i18n::init(std::path::Path::new(&resource_dir));
     }
-    gtk_display::shell::run(
-        Box::new(vauchi_linux_app::wiring::start_engine),
-        Box::new(vauchi_linux_app::wiring::start_hardware),
-    );
+    gtk_display::shell::run(Box::new(vauchi_linux_app::wiring::start_engine));
 }
