@@ -18,6 +18,8 @@ use std::{cell::RefCell, rc::Rc};
 use vauchi_app::ui::AppEngine;
 use vauchi_contract::{Command, CommandTarget, Event};
 use vauchi_core::settings::NetworkCost;
+#[cfg(feature = "gtk")]
+use vauchi_linux_hw::{Backends, HostDevices};
 use vauchi_linux_hw::{ExecuteError, LinuxHardware};
 
 use crate::engine::CommandEngine;
@@ -256,11 +258,30 @@ impl<E: CommandEngine> EngineLink for BridgeEngine<E> {
     }
 }
 
+/// The host's hardware runtime, or an empty shell when the runtime cannot
+/// start: the app must still boot (#1252). A degraded shell reports no
+/// devices, so Core sees the real capabilities instead of the process
+/// dying before the first window.
+#[cfg(feature = "gtk")]
+fn hardware_or_degraded() -> LinuxHardware {
+    match LinuxHardware::start() {
+        Ok(hardware) => hardware,
+        Err(error) => {
+            eprintln!(
+                "[linux-app] linux-hw runtime did not start ({error}); \
+                 starting with no hardware devices"
+            );
+            LinuxHardware::with_backends(Backends::default(), HostDevices::default())
+                .expect("an empty hardware shell always starts")
+        }
+    }
+}
+
 #[cfg(feature = "gtk")]
 pub fn start_engine() -> EngineHandle {
     let engine = start_shared_engine(gtk_display::shell::reset_for_testing_requested())
         .expect("Failed to initialize Vauchi backend");
-    let hardware = LinuxHardware::start().expect("Failed to start linux-hw");
+    let hardware = hardware_or_degraded();
     let bridge = BridgeEngine::new(engine, hardware).expect("Failed to start the hardware bridge");
     BridgeEngine::install_hardware_pump(&bridge);
     let engine: EngineHandle = bridge;
@@ -402,4 +423,16 @@ pub fn run_cli() -> Result<(), Box<dyn std::error::Error>> {
     let mut terminal = CliTerminal::new(&mut output, input, terminal_feedback);
     crate::terminal::run_terminal_with_shutdown(bridge, &mut terminal, || shutdown.requested())?;
     Ok(())
+}
+
+#[cfg(all(test, feature = "gtk"))]
+mod tests {
+    use super::*;
+
+    // @internal — the app boots even when the hardware runtime cannot start.
+    #[test]
+    fn the_degraded_hardware_shell_still_starts() {
+        let mut hardware = hardware_or_degraded();
+        assert!(hardware.pop().is_none());
+    }
 }
