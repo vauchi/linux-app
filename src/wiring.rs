@@ -94,10 +94,24 @@ impl<E: CommandEngine> HardwareBridge<E> {
 
     fn route(&mut self, commands: Vec<Command>) -> Result<(), ExecuteError> {
         let mut failure = None;
+        let mut unavailable = Vec::new();
         for command in commands {
             if command.target() == CommandTarget::Hardware {
+                let transport = unavailable_transport(&command);
                 match self.hardware.execute(command) {
-                    Ok(()) | Err(ExecuteError::Unsupported) => {}
+                    Ok(()) => {}
+                    Err(ExecuteError::Unsupported) => {
+                        // No Linux port serves this command. Tell Core the
+                        // transport is unavailable so it clears the pending
+                        // request instead of waiting out the timeout; the
+                        // renderer's hardware fallback did this before
+                        // (#1252).
+                        if let Some(transport) = transport {
+                            unavailable.push(Event::HardwareUnavailable {
+                                transport: transport.to_string(),
+                            });
+                        }
+                    }
                     Err(error) => {
                         failure.get_or_insert(error);
                     }
@@ -106,7 +120,24 @@ impl<E: CommandEngine> HardwareBridge<E> {
                 self.commands.push(command);
             }
         }
+        for event in unavailable {
+            self.dispatch(event)?;
+        }
         failure.map_or(Ok(()), Err)
+    }
+}
+
+/// The transport name Core learns when no Linux port serves the command.
+/// Names match the ones the GTK renderer's fallback reported (#1252):
+/// "Camera" (capital C) is the name Core answers a missing QR scanner
+/// with a toast rather than a failed exchange.
+fn unavailable_transport(command: &Command) -> Option<&'static str> {
+    match command {
+        Command::QrRequestScan => Some("Camera"),
+        Command::LocationRequest { .. } => Some("location"),
+        Command::ImageCaptureFromCamera => Some("camera"),
+        Command::SwitchCamera { .. } => Some("camera_switch"),
+        _ => None,
     }
 }
 
