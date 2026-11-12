@@ -197,3 +197,35 @@ fn hardware_delivery_errors_reach_the_host() {
     );
     assert_eq!(bridge.take_commands(), vec![Command::PerformNativeBack]);
 }
+
+// @internal — a command no Linux port serves answers unavailable, so Core
+// clears the pending request instead of waiting out the timeout. This is
+// the reporting the GTK renderer's hardware fallback provided (#1252).
+#[test]
+fn unported_hardware_commands_report_unavailable() {
+    let engine = engine(
+        vec![
+            Command::QrRequestScan,
+            Command::LocationRequest { timeout_ms: 1000 },
+            Command::ImageCaptureFromCamera,
+            Command::SwitchCamera { use_front: true },
+            Command::PerformNativeBack,
+        ],
+        vec![],
+    );
+    let events = engine.events.clone();
+    let mut bridge = HardwareBridge::new(engine, hardware(Backends::default())).unwrap();
+    assert_eq!(bridge.take_commands(), vec![Command::PerformNativeBack]);
+    let transports: Vec<String> = events
+        .borrow()
+        .iter()
+        .filter_map(|event| match event {
+            Event::HardwareUnavailable { transport } => Some(transport.clone()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        transports,
+        vec!["Camera", "location", "camera", "camera_switch"]
+    );
+}
