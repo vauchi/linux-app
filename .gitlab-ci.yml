@@ -20,8 +20,6 @@ include:
 
 variables:
   VAUCHI_SCRIPTS_REF: "936f83ab1e36613b7e84c85a169ebadceaa537a1"
-  # Same advisory as linux-gtk: paste unmaintained, reached through nokhwa.
-  AUDIT_IGNORES: "--ignore RUSTSEC-2024-0436"
 
 stages:
   - auto-tag

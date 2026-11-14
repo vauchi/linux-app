@@ -16,10 +16,7 @@ targets = [
 version = 2
 db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/rustsec/advisory-db"]
-ignore = [
-    # paste is unmaintained — transitive via uniffi. No action available.
-    "RUSTSEC-2024-0436",
-]
+ignore = []
 
 [licenses]
 version = 2
@@ -96,9 +93,7 @@ allow-git = [
     "https://gitlab.com/vauchi/contract.git",
     "https://gitlab.com/vauchi/core.git",
     "https://gitlab.com/vauchi/gtk-display.git",
-    "https://gitlab.com/vauchi/linux-gtk.git",
     "https://gitlab.com/vauchi/linux-hw.git",
-    "https://gitlab.com/vauchi/linux-qt.git",
     "https://gitlab.com/vauchi/qt-display.git",
     "https://gitlab.com/vauchi/relay.git",
     "https://gitlab.com/vauchi/tui.git",
