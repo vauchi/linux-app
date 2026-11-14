@@ -57,7 +57,7 @@ libadwaita = { version = "0.7", features = ["v1_4"], optional = true }
 vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.101.1", version = "=0.101.1", features = ["audio", "camera", "mdns"] }
 # The GTK display shell, repository `gtk-display` since 2026-11-11; its
 # crate is still `vauchi-gtk` (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.11.0", version = "=0.11.0", optional = true }
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.12.1", version = "=0.12.1", optional = true }
 qt-display = { git = "https://gitlab.com/vauchi/qt-display.git", tag = "qt-display-v0.1.4", version = "=0.1.4", optional = true }
 serde_json = "1"
 cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi/cli.git", tag = "v0.1.4", version = "=0.2.1", optional = true }

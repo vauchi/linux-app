@@ -3879,8 +3879,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-gtk"
-version = "0.11.0"
-source = "git+https://gitlab.com/vauchi/gtk-display.git?tag=v0.11.0#ab32b6189c2c5e95dcf20d4d54599dfa4a78e9bc"
+version = "0.12.1"
+source = "git+https://gitlab.com/vauchi/gtk-display.git?tag=v0.12.1#5ad1709900f060b80be8285987f102f624cdd674"
 dependencies = [
  "glib-build-tools",
  "gtk4",
