@@ -19,7 +19,7 @@ use vauchi_app::ui::AppEngine;
 use vauchi_contract::{Command, CommandTarget, Event};
 use vauchi_core::settings::NetworkCost;
 #[cfg(feature = "gtk")]
-use vauchi_linux_hw::{Backends, HostDevices};
+use vauchi_linux_hw::{Backends, HostDevices, StartError};
 use vauchi_linux_hw::{ExecuteError, LinuxHardware};
 
 use crate::engine::CommandEngine;
@@ -197,6 +197,14 @@ pub struct BridgeEngine<E = CoreEngine> {
 
 #[cfg(feature = "gtk")]
 impl<E: CommandEngine + 'static> BridgeEngine<E> {
+    /// Build the display bridge from the native startup result.
+    pub fn from_hardware_start(
+        engine: E,
+        hardware: Result<LinuxHardware, StartError>,
+    ) -> Result<Rc<Self>, ExecuteError> {
+        Self::new(engine, hardware_or_degraded(hardware))
+    }
+
     pub fn new(engine: E, hardware: LinuxHardware) -> Result<Rc<Self>, ExecuteError> {
         let mut bridge = HardwareBridge::new(engine, hardware)?;
         // The constructor routed Core's boot projection once for its
@@ -263,8 +271,8 @@ impl<E: CommandEngine> EngineLink for BridgeEngine<E> {
 /// devices, so Core sees the real capabilities instead of the process
 /// dying before the first window.
 #[cfg(feature = "gtk")]
-fn hardware_or_degraded() -> LinuxHardware {
-    match LinuxHardware::start() {
+fn hardware_or_degraded(started: Result<LinuxHardware, StartError>) -> LinuxHardware {
+    match started {
         Ok(hardware) => hardware,
         Err(error) => {
             eprintln!(
@@ -281,8 +289,8 @@ fn hardware_or_degraded() -> LinuxHardware {
 pub fn start_engine() -> EngineHandle {
     let engine = start_shared_engine(gtk_display::shell::reset_for_testing_requested())
         .expect("Failed to initialize Vauchi backend");
-    let hardware = hardware_or_degraded();
-    let bridge = BridgeEngine::new(engine, hardware).expect("Failed to start the hardware bridge");
+    let bridge = BridgeEngine::from_hardware_start(engine, LinuxHardware::start())
+        .expect("Failed to start the hardware bridge");
     BridgeEngine::install_hardware_pump(&bridge);
     let engine: EngineHandle = bridge;
     watch_network_cost(&engine);
