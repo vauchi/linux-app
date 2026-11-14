@@ -440,7 +440,7 @@ mod tests {
     // @internal — the app boots even when the hardware runtime cannot start.
     #[test]
     fn the_degraded_hardware_shell_still_starts() {
-        let mut hardware = hardware_or_degraded();
+        let mut hardware = hardware_or_degraded(LinuxHardware::start());
         assert!(hardware.pop().is_none());
     }
 }
