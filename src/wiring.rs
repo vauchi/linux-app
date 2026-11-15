@@ -19,7 +19,7 @@ use vauchi_app::ui::AppEngine;
 use vauchi_contract::{Command, CommandTarget, Event};
 use vauchi_core::settings::NetworkCost;
 #[cfg(feature = "gtk")]
-use vauchi_linux_hw::{Backends, HostDevices, StartError};
+use vauchi_linux_hw::StartError;
 use vauchi_linux_hw::{ExecuteError, LinuxHardware};
 
 use crate::engine::CommandEngine;
@@ -219,7 +219,7 @@ impl<E: CommandEngine + 'static> BridgeEngine<E> {
     }
 
     /// Pump hardware observations every 50 ms on the main loop, as the
-    /// deleted renderer-side link did. Core's 200 ms invalidation poll
+    /// deleted renderer-side link did. The display's invalidation poll
     /// applies the display commands that come back; the timer stops once
     /// the last handle is dropped. Call from the GTK main thread, once the
     /// default main context exists.
@@ -279,8 +279,7 @@ fn hardware_or_degraded(started: Result<LinuxHardware, StartError>) -> LinuxHard
                 "[linux-app] linux-hw runtime did not start ({error}); \
                  starting with no hardware devices"
             );
-            LinuxHardware::with_backends(Backends::default(), HostDevices::default())
-                .expect("an empty hardware shell always starts")
+            LinuxHardware::without_devices()
         }
     }
 }
@@ -440,7 +439,13 @@ mod tests {
     // @internal — the app boots even when the hardware runtime cannot start.
     #[test]
     fn the_degraded_hardware_shell_still_starts() {
-        let mut hardware = hardware_or_degraded(LinuxHardware::start());
-        assert!(hardware.pop().is_none());
+        let mut hardware = hardware_or_degraded(Err(StartError::Runtime(std::io::Error::other(
+            "forced native startup failure",
+        ))));
+        assert_eq!(
+            hardware.report(),
+            vauchi_linux_hw::HostDevices::default().report()
+        );
+        assert_eq!(hardware.pop(), None);
     }
 }
