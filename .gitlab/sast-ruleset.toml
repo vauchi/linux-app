@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Custom Semgrep SAST configuration (private#1262 follow-up).
+#
+# bandit.B101 (assert_used) fires on every Python `assert`, which is the
+# correct idiom in this repo's AT-SPI test suite (tests/atspi-qt/*.py):
+# 95 INFO findings on 2026-11-14, all of them assertions in test code.
+# Test assertions are the oracle, not an error-handling shortcut, so the
+# rule is disabled repo-wide rather than hiding the tests from the scan.
+
+[semgrep]
+  description = "Semgrep defaults, minus the test-assert false positive"
+
+  [[semgrep.ruleset]]
+    disable = true
+    [semgrep.ruleset.identifier]
+      type = "semgrep_id"
+      value = "bandit.B101"
