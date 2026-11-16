@@ -9,6 +9,8 @@
 # 95 INFO findings on 2026-11-14, all of them assertions in test code.
 # Test assertions are the oracle, not an error-handling shortcut, so the
 # rule is disabled repo-wide rather than hiding the tests from the scan.
+# REVISIT this disable if production Python is ever added to linux-app:
+# as of 2026-11-16 every assert in the repo is in tests/ or ci/tests/.
 
 [semgrep]
   description = "Semgrep defaults, minus the test-assert false positive"
