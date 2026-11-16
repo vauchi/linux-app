@@ -6,7 +6,7 @@
 
 include:
   - project: 'vauchi/scripts'
-    ref: 1c964d334a0fb202d821652c1759a6f0cb6c9569
+    ref: e6016f258e8d5cef52107bcd5ebba6a0aaf224b1
     file:
       - '/ci-templates/rust-base.yml'
       - '/ci-templates/allow-git.yml'
@@ -19,7 +19,7 @@ include:
       - '/ci-templates/tool-install.yml'
 
 variables:
-  VAUCHI_SCRIPTS_REF: "1c964d334a0fb202d821652c1759a6f0cb6c9569"
+  VAUCHI_SCRIPTS_REF: "e6016f258e8d5cef52107bcd5ebba6a0aaf224b1"
 
 stages:
   - auto-tag
