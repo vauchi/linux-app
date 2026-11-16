@@ -125,10 +125,10 @@ impl<E: CommandEngine> HardwareBridge<E> {
                         // request instead of waiting out the timeout; the
                         // renderer's hardware fallback did this before
                         // (#1252).
-                        if let Some(transport) = transport {
-                            unavailable.push(Event::HardwareUnavailable {
-                                transport: transport.to_string(),
-                            });
+                        if let Some(transport) = transport
+                            && !unavailable.contains(&transport)
+                        {
+                            unavailable.push(transport);
                         }
                     }
                     Err(error) => {
@@ -139,8 +139,10 @@ impl<E: CommandEngine> HardwareBridge<E> {
                 self.commands.push(command);
             }
         }
-        for event in unavailable {
-            self.dispatch(event)?;
+        for transport in unavailable {
+            self.dispatch(Event::HardwareUnavailable {
+                transport: transport.to_string(),
+            })?;
         }
         failure.map_or(Ok(()), Err)
     }
@@ -152,6 +154,15 @@ impl<E: CommandEngine> HardwareBridge<E> {
 /// with a toast rather than a failed exchange.
 fn unavailable_transport(command: &Command) -> Option<&'static str> {
     match command {
+        Command::AudioEmitChallenge { .. } | Command::AudioListenForResponse { .. } => {
+            Some("Audio")
+        }
+        Command::BleStartScanning { .. }
+        | Command::BleStartAdvertising { .. }
+        | Command::BleConnect { .. }
+        | Command::BleWriteCharacteristic { .. }
+        | Command::BleReadCharacteristic { .. } => Some("BLE"),
+        Command::NfcActivate { .. } | Command::NfcSendApdu { .. } => Some("NFC"),
         Command::QrRequestScan => Some("Camera"),
         Command::LocationRequest { .. } => Some("location"),
         Command::ImageCaptureFromCamera => Some("camera"),
