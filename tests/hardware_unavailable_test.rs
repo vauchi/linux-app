@@ -33,7 +33,7 @@ fn bridge(commands: Vec<Command>) -> (HardwareBridge<Engine>, Rc<RefCell<Vec<Eve
         commands,
         events: Rc::clone(&events),
     };
-    let hardware = LinuxHardware::without_devices().unwrap();
+    let hardware = LinuxHardware::without_devices();
     (HardwareBridge::new(engine, hardware).unwrap(), events)
 }
 
