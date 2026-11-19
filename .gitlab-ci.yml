@@ -135,7 +135,7 @@ build:qvauchi:
 
 # The same AT-SPI checks for qvauchi, copied from qt-display's tests/atspi
 # before the legacy Qt app goes (private#1029, copy first, delete last).
-# The renderer probe, snapshot and screenshot tests stay in qt-display.
+# The renderer probe stays in qt-display: it runs on the library alone.
 test:a11y-qt:
   stage: test
   needs:
@@ -144,7 +144,39 @@ test:a11y-qt:
   resource_group: gtk-xvfb
   script:
     - chmod +x tests/atspi-qt/run-tests.sh
-    - tests/atspi-qt/run-tests.sh --tb=short
+    - tests/atspi-qt/run-tests.sh --tb=short -k "not test_snapshots"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Visual snapshots of qvauchi's destinations and onboarding, copied from
+# qt-display's tests/atspi before the legacy Qt app goes (private#1029,
+# copy first, delete last). Platform "linux-app-qt" keeps its own
+# baselines while qt-display still uploads "linux-qt". Advisory until
+# references are reviewed: Contacts and My Card draw a per-run identity.
+test:snapshots-qt:
+  allow_failure: true
+  stage: test
+  needs:
+    - job: build:qvauchi
+  tags: [linux, self-hosted]
+  resource_group: gtk-xvfb
+  variables:
+    VRT_PLATFORM: linux-app-qt
+    VRT_SCREENSHOT_DIR: tests/atspi-qt/snapshots/actual
+  script:
+    - chmod +x tests/atspi-qt/run-tests.sh
+    - mkdir -p tests/atspi-qt/snapshots/{baseline,actual,diff}
+    - tests/atspi-qt/run-tests.sh --tb=short -k "test_snapshots"
+  after_script:
+    - !reference [.vrt-upload-script, script]
+  artifacts:
+    when: always
+    paths:
+      - tests/atspi-qt/snapshots/baseline/
+      - tests/atspi-qt/snapshots/actual/
+      - tests/atspi-qt/snapshots/diff/
+    expire_in: 30 days
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
