@@ -382,13 +382,29 @@ pub fn take_reset_for_testing(args: Vec<String>) -> (Vec<String>, bool) {
     (kept, requested)
 }
 
+/// Offers this launch's arguments to a running app before starting one:
+/// when `hand_off` reports the links taken, nothing starts and the launch
+/// exits cleanly, so one user's data is never opened twice (private#650).
+pub fn launch_unless_handed_off<E>(
+    args: &[String],
+    hand_off: impl FnOnce(&[String]) -> bool,
+    launch: impl FnOnce(&[String]) -> Result<i32, E>,
+) -> Result<i32, E> {
+    if hand_off(args) {
+        return Ok(0);
+    }
+    launch(args)
+}
+
 #[cfg(feature = "qt")]
 pub fn run_qt() -> Result<i32, Box<dyn std::error::Error>> {
     let (args, reset_for_testing) = take_reset_for_testing(std::env::args().collect());
-    let engine = start_shared_engine(reset_for_testing)?;
-    let hardware = LinuxHardware::start()?;
-    let bridge = HardwareBridge::new(engine, hardware)?;
-    Ok(crate::qt::run(&args, bridge)?)
+    launch_unless_handed_off(&args, qt_display::hand_off_links, |args| {
+        let engine = start_shared_engine(reset_for_testing)?;
+        let hardware = LinuxHardware::start()?;
+        let bridge = HardwareBridge::new(engine, hardware)?;
+        Ok(crate::qt::run(args, bridge)?)
+    })
 }
 
 #[cfg(feature = "tui")]
