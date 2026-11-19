@@ -8,6 +8,7 @@ pub mod engine;
 pub mod locale;
 #[cfg(feature = "qt")]
 pub mod qt;
+pub mod relay_setting;
 pub mod storage;
 pub mod terminal;
 #[cfg(feature = "cli")]

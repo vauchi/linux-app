@@ -14,8 +14,7 @@ use vauchi_core::api::{Vauchi, VauchiConfig};
 use vauchi_core::storage::local_keys::load_or_generate_fallback_key;
 use vauchi_core::storage::{PlatformKeyring, SecureStorage};
 
-/// Default relay URL.
-const DEFAULT_RELAY_URL: &str = "wss://relay.vauchi.app";
+use crate::relay_setting::{RelaySetting, RelaySources};
 
 /// Returns the XDG data directory for vauchi (`$XDG_DATA_HOME/vauchi` or `~/.local/share/vauchi`).
 fn data_dir_from_env(
@@ -41,21 +40,6 @@ fn data_dir_from_env(
 
 fn data_dir() -> std::io::Result<PathBuf> {
     data_dir_from_env(std::env::var_os("XDG_DATA_HOME"), std::env::var_os("HOME"))
-}
-
-/// Resolve relay URL: config file > env var > default.
-fn resolve_relay_url(data_path: &std::path::Path) -> String {
-    let relay_config_path = data_path.join("relay_url.txt");
-    std::fs::read_to_string(&relay_config_path)
-        .ok()
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .or_else(|| {
-            std::env::var("VAUCHI_RELAY_URL")
-                .ok()
-                .filter(|s| !s.is_empty())
-        })
-        .unwrap_or_else(|| DEFAULT_RELAY_URL.to_string())
 }
 
 /// Per-install OS-keyring service name. Two GTK installs with distinct
@@ -92,22 +76,21 @@ fn detect_secure_storage(install_id: &str) -> Option<Arc<dyn SecureStorage>> {
 
 fn open_with_file_fallback(
     data_path: &Path,
-    relay_url: &str,
+    relay: &RelaySetting,
 ) -> Result<Vauchi, Box<dyn std::error::Error>> {
     let storage_key = load_or_generate_fallback_key(data_path)?;
-    let config = VauchiConfig::with_storage_path(data_path.join("vauchi.db"))
-        .with_relay_url(relay_url.to_string())
+    let config = relay
+        .apply(VauchiConfig::with_storage_path(data_path.join("vauchi.db")))
         .with_storage_key(storage_key);
     Ok(Vauchi::new(config)?)
 }
 
 fn open_with_secure_storage(
     data_path: &Path,
-    relay_url: &str,
+    relay: &RelaySetting,
     secure_storage: Arc<dyn SecureStorage>,
 ) -> Result<Vauchi, Box<dyn std::error::Error>> {
-    let config = VauchiConfig::with_storage_path(data_path.join("vauchi.db"))
-        .with_relay_url(relay_url.to_string());
+    let config = relay.apply(VauchiConfig::with_storage_path(data_path.join("vauchi.db")));
     Ok(Vauchi::with_secure_storage(config, secure_storage)?)
 }
 
@@ -117,14 +100,21 @@ pub fn init_vauchi() -> Result<Vauchi, Box<dyn std::error::Error>> {
 
     let install_id = vauchi_core::install_id::read_or_create_install_id(&data_path)?;
 
-    let relay_url = resolve_relay_url(&data_path);
+    let relay = crate::relay_setting::resolve(RelaySources::read(&data_path))?;
+    if relay.lacks_its_anchor() {
+        // The address is the user's own setting, not PII from a contact;
+        // it carries no token (logging-rules.md).
+        eprintln!(
+            "[vauchi] The relay setting names no trust anchor: nothing will sync until relay.json in the data directory gives the relay's \"anchor\""
+        );
+    }
     let secure_storage = detect_secure_storage(&install_id);
 
     Ok(match secure_storage {
-        Some(ss) => open_with_secure_storage(&data_path, &relay_url, ss)?,
+        Some(ss) => open_with_secure_storage(&data_path, &relay, ss)?,
         None => {
             eprintln!("[vauchi] Using file-backed fallback key (less secure)");
-            open_with_file_fallback(&data_path, &relay_url)?
+            open_with_file_fallback(&data_path, &relay)?
         }
     })
 }
@@ -237,6 +227,10 @@ mod tests {
         }
     }
 
+    fn production_relay() -> RelaySetting {
+        crate::relay_setting::resolve(RelaySources::default()).expect("no setting resolves")
+    }
+
     // Before an identity exists the database is under Core's bootstrap key
     // in the keyring (vauchi/private#580 T5.3); a restart must find it.
     // @internal
@@ -245,7 +239,7 @@ mod tests {
         let data_dir = tempfile::tempdir().expect("temporary data directory");
         let keyring: Arc<dyn SecureStorage> = Arc::new(InMemoryKeyring::default());
 
-        let first = open_with_secure_storage(data_dir.path(), DEFAULT_RELAY_URL, keyring.clone())
+        let first = open_with_secure_storage(data_dir.path(), &production_relay(), keyring.clone())
             .expect("first open");
         first
             .storage()
@@ -254,7 +248,7 @@ mod tests {
             .expect("save own card");
         drop(first);
 
-        let reopened = open_with_secure_storage(data_dir.path(), DEFAULT_RELAY_URL, keyring)
+        let reopened = open_with_secure_storage(data_dir.path(), &production_relay(), keyring)
             .expect("second open");
         let card = reopened.own_card().expect("read own card");
         assert!(!reopened.has_identity());
@@ -270,7 +264,7 @@ mod tests {
         let data_dir = tempfile::tempdir().expect("temporary data directory");
 
         let mut first =
-            open_with_file_fallback(data_dir.path(), DEFAULT_RELAY_URL).expect("first open");
+            open_with_file_fallback(data_dir.path(), &production_relay()).expect("first open");
         assert!(!first.has_identity());
         first
             .create_identity("Persistent Identity")
@@ -279,7 +273,7 @@ mod tests {
         drop(first);
 
         let reopened =
-            open_with_file_fallback(data_dir.path(), DEFAULT_RELAY_URL).expect("second open");
+            open_with_file_fallback(data_dir.path(), &production_relay()).expect("second open");
         assert!(reopened.has_identity());
     }
 }
