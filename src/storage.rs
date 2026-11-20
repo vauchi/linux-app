@@ -38,7 +38,7 @@ fn data_dir_from_env(
         })
 }
 
-fn data_dir() -> std::io::Result<PathBuf> {
+pub(crate) fn data_dir() -> std::io::Result<PathBuf> {
     data_dir_from_env(std::env::var_os("XDG_DATA_HOME"), std::env::var_os("HOME"))
 }
 

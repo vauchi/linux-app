@@ -417,9 +417,39 @@ pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
     let mode = TerminalMode::enter()?;
     let backend = ratatui_crossterm::CrosstermBackend::new(std::io::stdout());
     let mut output = ratatui_core::terminal::Terminal::new(backend)?;
-    let mut terminal =
-        TuiTerminal::new(&mut output, CrosstermEvents, terminal_feedback).with_mode(mode);
+    let mut terminal = TuiTerminal::new(&mut output, CrosstermEvents, tui_feedback).with_mode(mode);
     crate::terminal::run_terminal_with_shutdown(bridge, &mut terminal, || shutdown.requested())?;
+    Ok(())
+}
+
+/// The full-screen terminal's display effects. One it has no form for is
+/// left out, as the old `tui` binary did: ending the app on it took the
+/// device link down (vauchi/private#1233).
+#[cfg(feature = "tui")]
+fn tui_feedback(
+    commands: &[Command],
+    feedback: &mut crate::terminal::TerminalFeedback,
+) -> std::io::Result<()> {
+    for command in commands {
+        match command {
+            Command::ShowToast { toast } => feedback.status = Some(toast.message.clone()),
+            Command::PresentAlert { alert } => {
+                feedback.alert = Some((alert.title.clone(), alert.message.clone()));
+            }
+            Command::OpenExternalUrl { url } => feedback.status = Some(url.clone()),
+            Command::ExportFile { file } => {
+                // Only the name: the export stays inside the data directory.
+                let name = std::path::Path::new(&file.suggested_name)
+                    .file_name()
+                    .ok_or_else(|| std::io::Error::other("export has no file name"))?;
+                let destination = crate::storage::data_dir()?.join(name);
+                std::fs::write(&destination, &file.data)?;
+                feedback.status = Some(destination.display().to_string());
+            }
+            Command::ResetApplication => feedback.quit = true,
+            _ => {}
+        }
+    }
     Ok(())
 }
 
@@ -474,5 +504,44 @@ mod tests {
             vauchi_linux_hw::HostDevices::default().report()
         );
         assert_eq!(hardware.pop(), None);
+    }
+}
+
+#[cfg(all(test, feature = "tui"))]
+mod tui_feedback_tests {
+    use super::*;
+    use crate::terminal::TerminalFeedback;
+
+    // @internal — an effect with no terminal form ended the app (vauchi/private#1233).
+    #[test]
+    fn an_effect_the_terminal_has_no_form_for_is_left_out() {
+        let mut feedback = TerminalFeedback::default();
+
+        let outcome = tui_feedback(&[Command::ReloadTheme], &mut feedback);
+
+        assert!(outcome.is_ok(), "{outcome:?}");
+        assert_eq!(feedback.status, None);
+        assert_eq!(feedback.alert, None);
+        assert!(!feedback.quit);
+    }
+
+    // @internal
+    #[test]
+    fn a_link_to_open_is_shown_and_a_reset_ends_the_app() {
+        let mut feedback = TerminalFeedback::default();
+
+        tui_feedback(
+            &[
+                Command::OpenExternalUrl {
+                    url: "https://vauchi.app/help".into(),
+                },
+                Command::ResetApplication,
+            ],
+            &mut feedback,
+        )
+        .unwrap();
+
+        assert_eq!(feedback.status.as_deref(), Some("https://vauchi.app/help"));
+        assert!(feedback.quit);
     }
 }

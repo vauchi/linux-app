@@ -12,6 +12,8 @@ use crate::{engine::CommandEngine, wiring::HardwareBridge};
 pub struct TerminalFeedback {
     pub status: Option<String>,
     pub alert: Option<(String, String)>,
+    /// Core wiped its data: the app ends so the next start is a fresh one.
+    pub quit: bool,
 }
 
 pub trait TerminalIo {
