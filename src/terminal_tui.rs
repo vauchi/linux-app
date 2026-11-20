@@ -131,6 +131,10 @@ where
     }
 
     fn wait_input(&mut self, timeout: Duration) -> io::Result<ControlFlow<(), Vec<Event>>> {
+        let window = self.output.size().map_err(io::Error::other)?;
+        if let Some(report) = self.session.window_report(window.width, window.height) {
+            return Ok(ControlFlow::Continue(vec![report]));
+        }
         let Some(event) = self.input.next(timeout)? else {
             return Ok(ControlFlow::Continue(vec![]));
         };
