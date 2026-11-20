@@ -17,6 +17,7 @@ include:
       - '/ci-templates/content-fetch.yml'
       - '/ci-templates/vrt-upload.yml'
       - '/ci-templates/tool-install.yml'
+      - '/ci-templates/github-mirror.yml'
 
 variables:
   VAUCHI_SCRIPTS_REF: "e6016f258e8d5cef52107bcd5ebba6a0aaf224b1"
@@ -545,3 +546,6 @@ release:preview:
 # ============================================================
 # Deploy Stage — Badge Pages
 # ============================================================
+
+github-mirror:
+  extends: .github-mirror
