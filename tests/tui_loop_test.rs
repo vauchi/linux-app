@@ -46,6 +46,46 @@ fn command_batches_render_into_the_native_terminal_buffer() {
     assert!(rendered.contains("Create new identity"), "{rendered}");
 }
 
+/// The first wait reports the window; the tests below start after it.
+fn past_the_window_report(host: &mut impl TerminalIo) {
+    assert!(matches!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(events) if events.len() == 1
+    ));
+}
+
+// @internal — Core rejects Tab between panes until the window is reported (vauchi/private#1310).
+#[test]
+fn the_first_wait_reports_the_window_and_a_resize_reports_the_new_one() {
+    let mut output = Terminal::new(TestBackend::new(100, 35)).unwrap();
+    let mut host = TuiTerminal::new(&mut output, Keys(VecDeque::from([None])), |_, _| Ok(()));
+    assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    let window = |available_width, available_height| {
+        vec![vauchi_contract::Event::PresentationEnvironmentChanged {
+            available_width,
+            available_height,
+            input_modes: vec![vauchi_contract::InputMode::Keyboard],
+            motion: vauchi_contract::MotionPreference::Full,
+            color_scheme: None,
+        }]
+    };
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(window(100, 35))
+    );
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+    drop(host);
+    output.backend_mut().resize(80, 24);
+    let mut host = TuiTerminal::new(&mut output, Keys(VecDeque::new()), |_, _| Ok(()));
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(window(80, 24))
+    );
+}
+
 // @internal — idle input and key releases must return without forwarding invented Core events; Ctrl-C exits.
 #[test]
 fn input_waits_are_bounded_and_control_c_quits_without_dispatch() {
@@ -62,6 +102,7 @@ fn input_waits_are_bounded_and_control_c_quits_without_dispatch() {
     let mut output = Terminal::new(TestBackend::new(100, 35)).unwrap();
     let mut host = TuiTerminal::new(&mut output, input, |_, _| Ok(()));
     assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    past_the_window_report(&mut host);
     assert_eq!(
         host.wait_input(Duration::from_millis(50)).unwrap(),
         ControlFlow::Continue(vec![])
@@ -86,6 +127,7 @@ fn resize_preserves_the_presented_surface() {
         |_, _| Ok(()),
     );
     assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    past_the_window_report(&mut host);
     assert_eq!(
         host.wait_input(Duration::from_millis(50)).unwrap(),
         ControlFlow::Continue(vec![])
@@ -112,6 +154,7 @@ fn alert_dismissal_consumes_the_key_before_surface_input_resumes() {
         Ok(())
     });
     assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    past_the_window_report(&mut host);
     assert_eq!(
         host.wait_input(Duration::from_millis(50)).unwrap(),
         ControlFlow::Continue(vec![])
