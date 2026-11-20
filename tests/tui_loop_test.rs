@@ -46,11 +46,12 @@ fn command_batches_render_into_the_native_terminal_buffer() {
     assert!(rendered.contains("Create new identity"), "{rendered}");
 }
 
-/// The first wait reports the window; the tests below start after it.
+/// The first wait carries the display's reports: that it answers file
+/// picks, and the window. The tests below start after it.
 fn past_the_window_report(host: &mut impl TerminalIo) {
     assert!(matches!(
         host.wait_input(Duration::from_millis(50)).unwrap(),
-        ControlFlow::Continue(events) if events.len() == 1
+        ControlFlow::Continue(events) if events.len() == 2
     ));
 }
 
@@ -61,13 +62,18 @@ fn the_first_wait_reports_the_window_and_a_resize_reports_the_new_one() {
     let mut host = TuiTerminal::new(&mut output, Keys(VecDeque::from([None])), |_, _| Ok(()));
     assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
     let window = |available_width, available_height| {
-        vec![vauchi_contract::Event::PresentationEnvironmentChanged {
-            available_width,
-            available_height,
-            input_modes: vec![vauchi_contract::InputMode::Keyboard],
-            motion: vauchi_contract::MotionPreference::Full,
-            color_scheme: None,
-        }]
+        vec![
+            vauchi_contract::Event::FilePickerCapabilitiesChanged {
+                correlated_results: true,
+            },
+            vauchi_contract::Event::PresentationEnvironmentChanged {
+                available_width,
+                available_height,
+                input_modes: vec![vauchi_contract::InputMode::Keyboard],
+                motion: vauchi_contract::MotionPreference::Full,
+                color_scheme: None,
+            },
+        ]
     };
     assert_eq!(
         host.wait_input(Duration::from_millis(50)).unwrap(),
@@ -84,6 +90,18 @@ fn the_first_wait_reports_the_window_and_a_resize_reports_the_new_one() {
         host.wait_input(Duration::from_millis(50)).unwrap(),
         ControlFlow::Continue(window(80, 24))
     );
+}
+
+// @internal — Core wiped its data; the old binary ended there too (vauchi/private#1233).
+#[test]
+fn a_reset_the_host_was_told_of_ends_the_loop() {
+    let mut output = Terminal::new(TestBackend::new(100, 35)).unwrap();
+    let mut host = TuiTerminal::new(&mut output, Keys(VecDeque::new()), |_, feedback| {
+        feedback.quit = true;
+        Ok(())
+    });
+
+    assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Break(()));
 }
 
 // @internal — idle input and key releases must return without forwarding invented Core events; Ctrl-C exits.
