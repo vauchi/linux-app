@@ -145,6 +145,26 @@ fn input_is_dispatched_unchanged_and_quit_stops_the_loop() {
     assert_eq!(terminal.waits.len(), 2);
 }
 
+// @internal — Core schedules its next wakeup only when one fires, so without
+// the host's first one no heartbeat runs: no sync, and a device link stays on
+// "Generating link..." (vauchi/private#1297).
+#[test]
+fn the_host_fires_the_first_wakeup_once_before_it_waits_for_input() {
+    let invalidated = Rc::new(Cell::new(true));
+    let events = Rc::new(RefCell::new(vec![]));
+    let mut terminal = console(invalidated.clone(), vec![Ok(ControlFlow::Break(()))]);
+
+    run_terminal(bridge(invalidated, events.clone()), &mut terminal).unwrap();
+
+    let wakeups = events
+        .borrow()
+        .iter()
+        .filter(|event| **event == Event::WakeupFired)
+        .count();
+    assert_eq!(wakeups, 1);
+    assert_eq!(terminal.waits.len(), 1);
+}
+
 // @internal — input failure must return promptly instead of spinning or retrying EOF.
 #[test]
 fn input_failure_ends_the_loop_and_preserves_its_error_kind() {
