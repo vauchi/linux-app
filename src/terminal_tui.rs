@@ -42,6 +42,11 @@ impl Drop for TerminalMode {
 
 pub trait TerminalEvents {
     fn next(&mut self, timeout: Duration) -> io::Result<Option<NativeEvent>>;
+
+    /// The time a status is aged against.
+    fn now(&self) -> std::time::Instant {
+        std::time::Instant::now()
+    }
 }
 
 pub struct CrosstermEvents;

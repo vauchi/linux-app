@@ -192,3 +192,51 @@ fn alert_dismissal_consumes_the_key_before_surface_input_resumes() {
         ControlFlow::Continue(expected)
     );
 }
+
+struct ClockedIdle(std::rc::Rc<std::cell::Cell<std::time::Instant>>);
+impl TerminalEvents for ClockedIdle {
+    fn next(&mut self, _: Duration) -> io::Result<Option<NativeEvent>> {
+        Ok(None)
+    }
+    fn now(&self) -> std::time::Instant {
+        self.0.get()
+    }
+}
+
+fn screen_with_a_status_after(elapsed: Duration) -> String {
+    let start = std::time::Instant::now();
+    let clock = std::rc::Rc::new(std::cell::Cell::new(start));
+    let mut output = Terminal::new(TestBackend::new(100, 35)).unwrap();
+    let mut host = TuiTerminal::new(&mut output, ClockedIdle(clock.clone()), |_, feedback| {
+        feedback.status = Some("Update sent".into());
+        Ok(())
+    });
+    assert_eq!(host.render(&commands()).unwrap(), ControlFlow::Continue(()));
+    past_the_window_report(&mut host);
+    clock.set(start + elapsed);
+    assert_eq!(
+        host.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+    drop(host);
+    output
+        .backend()
+        .buffer()
+        .content()
+        .iter()
+        .map(|cell| cell.symbol())
+        .collect()
+}
+
+// @internal — the status box covers the top rows of the screen, where the
+// title and the sync chip are; the old binary took it away after 3 s and
+// this one kept it until the next status (vauchi/private#1297).
+#[test]
+fn a_status_leaves_the_screen_after_three_seconds() {
+    let shown = screen_with_a_status_after(Duration::from_millis(2900));
+    assert!(shown.contains("Update sent"), "{shown}");
+
+    let gone = screen_with_a_status_after(Duration::from_secs(3));
+    assert!(!gone.contains("Update sent"), "{gone}");
+    assert!(gone.contains("Create new identity"), "{gone}");
+}
