@@ -5,7 +5,11 @@
 
 use crossterm::event::{self, Event as NativeEvent, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui_core::{backend::Backend, terminal::Terminal};
-use std::{io, ops::ControlFlow, time::Duration};
+use std::{
+    io,
+    ops::ControlFlow,
+    time::{Duration, Instant},
+};
 use tui_display::{SessionView, TerminalSession, ui::presentation_input::KeyOutcome};
 use vauchi_contract::{Command, Event};
 
@@ -44,8 +48,8 @@ pub trait TerminalEvents {
     fn next(&mut self, timeout: Duration) -> io::Result<Option<NativeEvent>>;
 
     /// The time a status is aged against.
-    fn now(&self) -> std::time::Instant {
-        std::time::Instant::now()
+    fn now(&self) -> Instant {
+        Instant::now()
     }
 }
 
@@ -62,12 +66,17 @@ impl TerminalEvents for CrosstermEvents {
 
 pub use crate::terminal::TerminalFeedback;
 
+/// How long a status stays up: it covers the screen's top rows, and the
+/// `tui` binary this host replaces took it away after the same time.
+const STATUS_TIME: Duration = Duration::from_secs(3);
+
 pub struct TuiTerminal<'a, B: Backend, I, F> {
     output: &'a mut Terminal<B>,
     input: I,
     effects: F,
     session: TerminalSession,
     feedback: TerminalFeedback,
+    status_since: Option<Instant>,
     mode: Option<TerminalMode>,
 }
 
@@ -82,6 +91,7 @@ where
             effects,
             session: TerminalSession::default(),
             feedback: TerminalFeedback::default(),
+            status_since: None,
             mode: None,
         }
     }
@@ -127,7 +137,13 @@ where
 
     fn render(&mut self, commands: &[Command]) -> io::Result<ControlFlow<()>> {
         let effects = self.session.apply_commands(commands);
+        let shown = self.feedback.status.take();
         (self.effects)(&effects, &mut self.feedback)?;
+        if self.feedback.status.is_some() {
+            self.status_since = Some(self.input.now());
+        } else {
+            self.feedback.status = shown;
+        }
         if self.feedback.quit || self.session.presentation().native_back_requested() {
             return Ok(ControlFlow::Break(()));
         }
@@ -136,6 +152,14 @@ where
     }
 
     fn wait_input(&mut self, timeout: Duration) -> io::Result<ControlFlow<(), Vec<Event>>> {
+        if self
+            .status_since
+            .is_some_and(|since| self.input.now().saturating_duration_since(since) >= STATUS_TIME)
+        {
+            self.status_since = None;
+            self.feedback.status = None;
+            self.draw()?;
+        }
         let window = self.output.size().map_err(io::Error::other)?;
         let mut reports = self.session.take_reports();
         reports.extend(self.session.window_report(window.width, window.height));
