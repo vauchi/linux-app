@@ -73,6 +73,11 @@ fn run_loop<E: CommandEngine>(
     terminal: &mut impl TerminalIo,
     shutdown_requested: impl Fn() -> bool,
 ) -> io::Result<()> {
+    // Core schedules its next wakeup only when one fires (ADR-044 Am2a):
+    // the host fires the first, or no heartbeat ever runs.
+    bridge
+        .dispatch(Event::WakeupFired)
+        .map_err(io::Error::other)?;
     while !shutdown_requested() {
         bridge.poll().map_err(io::Error::other)?;
         let commands = bridge.take_commands();
