@@ -3793,8 +3793,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-app"
-version = "0.107.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.107.0#2ef75486888e9302664a3c808b201f500bca16a5"
+version = "0.108.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.108.0#f8bc2667b2f40880ea3030ccb4b825c09be6f41d"
 dependencies = [
  "base64 0.22.1",
  "flate2",
@@ -3817,7 +3817,7 @@ version = "0.2.1"
 source = "git+https://gitlab.com/vauchi/cli.git?tag=v0.1.4#2aa694a01b743a7fbd37a024fa7c035a0db161c2"
 dependencies = [
  "console",
- "vauchi-contract",
+ "vauchi-contract 0.98.0",
 ]
 
 [[package]]
@@ -3832,9 +3832,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "vauchi-contract"
+version = "0.99.0"
+source = "git+https://gitlab.com/vauchi/contract.git?tag=v0.99.0#e4401c512be34dadfe9232c671597c35e6db6a10"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
+ "zeroize",
+]
+
+[[package]]
 name = "vauchi-core"
-version = "0.107.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.107.0#2ef75486888e9302664a3c808b201f500bca16a5"
+version = "0.108.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.108.0#f8bc2667b2f40880ea3030ccb4b825c09be6f41d"
 dependencies = [
  "argon2",
  "base64 0.22.1",
@@ -3869,7 +3880,7 @@ dependencies = [
  "ureq",
  "url",
  "uuid",
- "vauchi-contract",
+ "vauchi-contract 0.99.0",
  "vauchi-protocol",
  "webpki-roots",
  "winapi-util",
@@ -3887,7 +3898,7 @@ dependencies = [
  "libadwaita",
  "qrcode",
  "serde_json",
- "vauchi-contract",
+ "vauchi-contract 0.98.0",
  "yeslogic-fontconfig-sys",
 ]
 
@@ -3908,7 +3919,7 @@ dependencies = [
  "tempfile",
  "vauchi-app",
  "vauchi-cli-display",
- "vauchi-contract",
+ "vauchi-contract 0.99.0",
  "vauchi-core",
  "vauchi-gtk",
  "vauchi-linux-hw",
@@ -3933,14 +3944,14 @@ dependencies = [
  "thiserror",
  "tokio",
  "uuid",
- "vauchi-contract",
+ "vauchi-contract 0.98.0",
  "zbus",
 ]
 
 [[package]]
 name = "vauchi-protocol"
-version = "0.107.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.107.0#2ef75486888e9302664a3c808b201f500bca16a5"
+version = "0.108.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.108.0#f8bc2667b2f40880ea3030ccb4b825c09be6f41d"
 dependencies = [
  "serde",
  "serde_json",
@@ -3958,7 +3969,7 @@ dependencies = [
  "ratatui-widgets",
  "serde",
  "serde_json",
- "vauchi-contract",
+ "vauchi-contract 0.98.0",
 ]
 
 [[package]]
