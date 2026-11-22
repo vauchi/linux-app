@@ -132,3 +132,21 @@ fn malformed_and_oversized_native_events_never_reach_the_engine() {
         "Qt supplied an invalid event"
     );
 }
+
+// @internal — Core schedules its next wakeup only when one fires (ADR-044
+// Am2a) and Qt has no timer of its own, so without the host's first one no
+// heartbeat runs (vauchi/private#1338).
+#[test]
+fn the_host_fires_the_first_wakeup_once_before_qt_reports_anything() {
+    let Fixture {
+        mut host, events, ..
+    } = host(vec![], vec![]);
+    assert_eq!(batch(&mut host), None);
+    assert_eq!(batch(&mut host), None);
+    let wakeups = events
+        .borrow()
+        .iter()
+        .filter(|event| **event == Event::WakeupFired)
+        .count();
+    assert_eq!(wakeups, 1);
+}
