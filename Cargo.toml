@@ -56,17 +56,17 @@ vauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.99
 gtk4 = { version = "0.9", optional = true }
 # The catalog renderer's window chrome; the version gtk-display links.
 libadwaita = { version = "0.7", features = ["v1_4"], optional = true }
-vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.101.2", version = "=0.101.2", features = ["audio", "camera", "mdns"] }
+vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.102.0", version = "=0.102.0", features = ["audio", "camera", "mdns"] }
 # The GTK display shell, repository `gtk-display` since 2026-11-11; its
 # crate is still `vauchi-gtk` (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.12.1", version = "=0.12.1", optional = true }
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.13.0", version = "=0.13.0", optional = true }
 qt-display = { git = "https://gitlab.com/vauchi/qt-display.git", tag = "v0.1.5", version = "=0.1.5", optional = true }
 serde_json = "1"
-cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi/cli.git", tag = "v0.1.4", version = "=0.2.1", optional = true }
+cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi/cli.git", tag = "v0.1.5", version = "=0.2.2", optional = true }
 rustix = { version = "1.1", features = ["event", "termios"], optional = true }
 clap_builder = { version = "4", default-features = false, features = ["std", "help", "usage", "error-context"], optional = true }
 signal-hook = { version = "0.3", default-features = false, optional = true }
-tui-display = { package = "vauchi-tui-display", git = "https://gitlab.com/vauchi/tui.git", tag = "v0.3.3", version = "=0.2.3", optional = true }
+tui-display = { package = "vauchi-tui-display", git = "https://gitlab.com/vauchi/tui.git", tag = "v0.3.4", version = "=0.2.4", optional = true }
 crossterm = { version = "0.28", optional = true }
 ratatui-core = { version = "0.1.2", default-features = false, features = ["std", "layout-cache", "underline-color"], optional = true }
 ratatui-crossterm = { version = "0.1.2", default-features = false, features = ["crossterm_0_28", "underline-color"], optional = true }

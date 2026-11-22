@@ -72,6 +72,7 @@ fn the_first_wait_reports_the_window_and_a_resize_reports_the_new_one() {
                 input_modes: vec![vauchi_contract::InputMode::Keyboard],
                 motion: vauchi_contract::MotionPreference::Full,
                 color_scheme: None,
+                pinned_actions: false,
             },
         ]
     };

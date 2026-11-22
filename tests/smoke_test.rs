@@ -102,6 +102,7 @@ fn desktop_window_facts_produce_a_core_owned_profile() {
             input_modes: vec![InputMode::Pointer, InputMode::Keyboard],
             motion: MotionPreference::Full,
             color_scheme: None,
+            pinned_actions: false,
         })
         .expect("environment event");
 
