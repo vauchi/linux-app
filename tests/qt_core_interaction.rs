@@ -45,9 +45,9 @@ fn main() {
         },
     )
     .unwrap();
-    let host = Rc::new(RefCell::new(QtHost::new(
-        HardwareBridge::new(core, hardware).unwrap(),
-    )));
+    let host = Rc::new(RefCell::new(
+        QtHost::new(HardwareBridge::new(core, hardware).unwrap()).unwrap(),
+    ));
     let events = host.clone();
     let progressed = Rc::new(RefCell::new(false));
     let observed = progressed.clone();

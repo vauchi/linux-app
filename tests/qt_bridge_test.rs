@@ -46,7 +46,7 @@ fn host(initial: Vec<Command>, reply: Vec<Command>) -> Fixture {
         events: events.clone(),
         invalidated: invalidated.clone(),
         initial,
-        replies: RefCell::new(VecDeque::from([vec![], reply])),
+        replies: RefCell::new(VecDeque::from([vec![], vec![], reply])),
     };
     let hardware = LinuxHardware::with_backends(
         Backends::default(),
@@ -59,7 +59,7 @@ fn host(initial: Vec<Command>, reply: Vec<Command>) -> Fixture {
     )
     .unwrap();
     Fixture {
-        host: QtHost::new(HardwareBridge::new(engine, hardware).unwrap()),
+        host: QtHost::new(HardwareBridge::new(engine, hardware).unwrap()).unwrap(),
         events,
         invalidated,
     }

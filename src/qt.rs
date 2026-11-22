@@ -33,8 +33,14 @@ pub struct QtHost<E: CommandEngine> {
 }
 
 impl<E: CommandEngine> QtHost<E> {
-    pub fn new(bridge: HardwareBridge<E>) -> Self {
-        Self { bridge }
+    /// Core schedules its next wakeup only when one fires (ADR-044 Am2a)
+    /// and Qt has no timer of its own: the host fires the first, or no
+    /// heartbeat ever runs (vauchi/private#1338).
+    pub fn new(mut bridge: HardwareBridge<E>) -> Result<Self, QtHostError> {
+        bridge
+            .dispatch(vauchi_contract::Event::WakeupFired)
+            .map_err(|_| QtHostError::Hardware)?;
+        Ok(Self { bridge })
     }
 
     pub fn on_event(&mut self, json: &str) -> Result<(), QtHostError> {
@@ -62,7 +68,7 @@ pub fn run<E: CommandEngine + 'static>(
     args: &[String],
     bridge: HardwareBridge<E>,
 ) -> Result<i32, QtHostError> {
-    let host = Rc::new(RefCell::new(QtHost::new(bridge)));
+    let host = Rc::new(RefCell::new(QtHost::new(bridge)?));
     let failure = Rc::new(Cell::new(None));
     let events = host.clone();
     let event_failure = failure.clone();
