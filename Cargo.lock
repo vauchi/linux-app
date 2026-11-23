@@ -3813,8 +3813,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-cli-display"
-version = "0.2.2"
-source = "git+https://gitlab.com/vauchi/cli.git?tag=v0.1.5#975b4b72068520f2f0cd28c3ce01dfbf7c1c2325"
+version = "0.2.4"
+source = "git+https://gitlab.com/vauchi/cli.git?tag=v0.1.7#787c5821d41b86f8dfdb71b5e0bc00994c12f923"
 dependencies = [
  "console",
  "vauchi-contract",
@@ -3949,8 +3949,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-tui-display"
-version = "0.2.4"
-source = "git+https://gitlab.com/vauchi/tui.git?tag=v0.3.4#af9673bb3d08f0a4cb856310830bb229fdbe82e2"
+version = "0.2.5"
+source = "git+https://gitlab.com/vauchi/tui.git?tag=v0.3.5#63230a31840adf3e1184477d86c9f22dcfbddf00"
 dependencies = [
  "anyhow",
  "crossterm",
