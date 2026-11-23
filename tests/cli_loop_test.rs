@@ -5,8 +5,8 @@
 
 use std::{collections::VecDeque, io, ops::ControlFlow, time::Duration};
 use vauchi_contract::{
-    AccessibilitySpec, BindingId, Command, Event, InputValue, PresentationInputKind,
-    PresentationNode,
+    AccessibilitySpec, BindingId, Command, Event, InputMode, InputValue, MotionPreference,
+    PresentationInputKind, PresentationNode,
 };
 use vauchi_linux_app::{
     terminal::TerminalIo,
@@ -73,6 +73,62 @@ fn submitted(events: ControlFlow<(), Vec<Event>>) -> String {
     value.clone()
 }
 
+/// The first wait carries the display's report to Core; the tests below
+/// start after it.
+fn past_the_environment_report(terminal: &mut impl TerminalIo) {
+    assert!(matches!(
+        terminal.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(events)
+            if matches!(events.as_slice(), [Event::PresentationEnvironmentChanged { .. }])
+    ));
+}
+
+fn environment(available_width: u32, available_height: u32) -> Event {
+    Event::PresentationEnvironmentChanged {
+        available_width,
+        available_height,
+        input_modes: vec![InputMode::Keyboard],
+        motion: MotionPreference::Full,
+        color_scheme: None,
+        pinned_actions: true,
+    }
+}
+
+// @internal — Core sends a decision's answers as pinned actions only to a shell that says it lists them (vauchi/private#1304).
+#[test]
+fn the_first_wait_reports_the_terminal_once_and_that_it_lists_pinned_actions() {
+    let mut output = Vec::new();
+    let input = Input(VecDeque::from([InputChunk::Idle]));
+    let mut terminal = CliTerminal::new(&mut output, input, |_, _| Ok(())).with_window(120, 40);
+    assert_eq!(
+        terminal.render(&commands(false)).unwrap(),
+        ControlFlow::Continue(())
+    );
+
+    assert_eq!(
+        terminal.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![environment(120, 40)])
+    );
+    assert_eq!(
+        terminal.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![])
+    );
+}
+
+// @internal
+#[test]
+fn without_a_known_window_the_report_says_80_by_24() {
+    let mut output = Vec::new();
+    let input = Input(VecDeque::new());
+    let mut terminal = CliTerminal::new(&mut output, input, |_, _| Ok(()));
+    terminal.render(&commands(false)).unwrap();
+
+    assert_eq!(
+        terminal.wait_input(Duration::from_millis(50)).unwrap(),
+        ControlFlow::Continue(vec![environment(80, 24)])
+    );
+}
+
 // @internal — unfinished input returns control so the bridge can deliver background observations.
 #[test]
 fn partial_input_yields_and_eof_submits_the_last_unterminated_line_once() {
@@ -86,6 +142,7 @@ fn partial_input_yields_and_eof_submits_the_last_unterminated_line_once() {
         terminal.render(&commands(false)).unwrap(),
         ControlFlow::Continue(())
     );
+    past_the_environment_report(&mut terminal);
     assert_eq!(
         terminal.wait_input(Duration::from_millis(50)).unwrap(),
         ControlFlow::Continue(vec![])
@@ -110,6 +167,7 @@ fn secrets_preserve_whitespace_and_are_never_echoed() {
         terminal.render(&commands(true)).unwrap(),
         ControlFlow::Continue(())
     );
+    past_the_environment_report(&mut terminal);
     assert_eq!(
         submitted(terminal.wait_input(Duration::from_millis(50)).unwrap()),
         "  secret  "
@@ -129,6 +187,7 @@ fn background_replacement_discards_a_partially_typed_value() {
     let mut terminal = CliTerminal::new(&mut output, input, |_, _| Ok(()));
     let mut batch = commands(false);
     assert_eq!(terminal.render(&batch).unwrap(), ControlFlow::Continue(()));
+    past_the_environment_report(&mut terminal);
     assert_eq!(
         terminal.wait_input(Duration::from_millis(50)).unwrap(),
         ControlFlow::Continue(vec![])
@@ -160,6 +219,7 @@ fn quit_and_empty_pipe_eof_exit_without_inventing_an_event() {
             terminal.render(&commands(false)).unwrap(),
             ControlFlow::Continue(())
         );
+        past_the_environment_report(&mut terminal);
         assert_eq!(
             terminal.wait_input(Duration::from_millis(50)).unwrap(),
             ControlFlow::Break(())
@@ -184,6 +244,7 @@ fn invalid_utf8_and_oversized_lines_fail_explicitly() {
             terminal.render(&commands(false)).unwrap(),
             ControlFlow::Continue(())
         );
+        past_the_environment_report(&mut terminal);
         assert_eq!(
             terminal
                 .wait_input(Duration::from_millis(50))
@@ -206,6 +267,7 @@ fn buffered_input_resumes_after_an_event_without_a_repaint() {
         terminal.render(&commands(false)).unwrap(),
         ControlFlow::Continue(())
     );
+    past_the_environment_report(&mut terminal);
     assert_eq!(
         submitted(terminal.wait_input(Duration::from_millis(50)).unwrap()),
         "Alice"
@@ -230,6 +292,7 @@ fn identical_repaint_keeps_the_pending_input_visible() {
         terminal.render(&commands(false)).unwrap(),
         ControlFlow::Continue(())
     );
+    past_the_environment_report(&mut terminal);
     assert_eq!(
         terminal.wait_input(Duration::from_millis(50)).unwrap(),
         ControlFlow::Continue(vec![])
