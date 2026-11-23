@@ -484,9 +484,25 @@ pub fn run_cli() -> Result<(), Box<dyn std::error::Error>> {
     let shutdown = crate::terminal_signals::SignalShutdown::new()?;
     let input = FdInput::new(std::io::stdin())?;
     let mut output = std::io::stdout();
-    let mut terminal = CliTerminal::new(&mut output, input, terminal_feedback);
+    let (columns, rows) = line_terminal_window(&output);
+    let mut terminal =
+        CliTerminal::new(&mut output, input, terminal_feedback).with_window(columns, rows);
     crate::terminal::run_terminal_with_shutdown(bridge, &mut terminal, || shutdown.requested())?;
     Ok(())
+}
+
+/// Piped output has no window: it reports the 80x24 the cli binary
+/// reports, so a scripted run sees the same layout every time.
+#[cfg(feature = "cli")]
+fn line_terminal_window(output: &std::io::Stdout) -> (u16, u16) {
+    use std::io::IsTerminal;
+    if !output.is_terminal() {
+        return (80, 24);
+    }
+    match rustix::termios::tcgetwinsize(output) {
+        Ok(size) if size.ws_col > 0 && size.ws_row > 0 => (size.ws_col, size.ws_row),
+        _ => (80, 24),
+    }
 }
 
 #[cfg(all(test, feature = "gtk"))]

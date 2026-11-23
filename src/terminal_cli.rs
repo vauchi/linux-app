@@ -11,7 +11,7 @@ use std::{
     ops::ControlFlow,
     time::Duration,
 };
-use vauchi_contract::{Command, Event};
+use vauchi_contract::{Command, Event, InputMode, MotionPreference};
 
 mod input;
 pub use input::{FdInput, InputChunk, LineInput};
@@ -29,6 +29,8 @@ pub struct CliTerminal<'a, W: Write, I: LineInput, F> {
     ended: bool,
     skip_lf: bool,
     escape: u8,
+    window: (u16, u16),
+    reported: bool,
 }
 
 impl<'a, W: Write, I: LineInput, F> CliTerminal<'a, W, I, F>
@@ -49,6 +51,31 @@ where
             ended: false,
             skip_lf: false,
             escape: 0,
+            window: (80, 24),
+            reported: false,
+        }
+    }
+
+    /// The terminal's size in columns and rows, for the report to Core.
+    pub fn with_window(mut self, columns: u16, rows: u16) -> Self {
+        self.window = (columns, rows);
+        self
+    }
+
+    fn environment_report(&self) -> Event {
+        let reduced_motion = std::env::var("VAUCHI_REDUCED_MOTION")
+            .is_ok_and(|value| matches!(value.as_str(), "1" | "true" | "yes"));
+        Event::PresentationEnvironmentChanged {
+            available_width: u32::from(self.window.0),
+            available_height: u32::from(self.window.1),
+            input_modes: vec![InputMode::Keyboard],
+            motion: if reduced_motion {
+                MotionPreference::Reduced
+            } else {
+                MotionPreference::Full
+            },
+            color_scheme: None,
+            pinned_actions: true,
         }
     }
 
@@ -125,6 +152,10 @@ where
     }
 
     fn wait_input(&mut self, timeout: Duration) -> io::Result<ControlFlow<(), Vec<Event>>> {
+        if !self.reported {
+            self.reported = true;
+            return Ok(ControlFlow::Continue(vec![self.environment_report()]));
+        }
         if self.prompt.is_none() && !self.ended {
             let prompt = LinePrompt::new(&self.state, &mut self.offered)?;
             write!(self.output, "{}", prompt.prompt())?;
