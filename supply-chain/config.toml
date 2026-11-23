@@ -240,7 +240,7 @@ version = "0.9.6"
 criteria = "safe-to-deploy"
 
 [[exemptions.cookie]]
-version = "0.18.2"
+version = "0.18.3"
 criteria = "safe-to-deploy"
 
 [[exemptions.cookie_store]]
