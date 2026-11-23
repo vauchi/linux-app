@@ -121,7 +121,10 @@ fn without_a_known_window_the_report_says_80_by_24() {
     let mut output = Vec::new();
     let input = Input(VecDeque::new());
     let mut terminal = CliTerminal::new(&mut output, input, |_, _| Ok(()));
-    terminal.render(&commands(false)).unwrap();
+    assert_eq!(
+        terminal.render(&commands(false)).unwrap(),
+        ControlFlow::Continue(())
+    );
 
     assert_eq!(
         terminal.wait_input(Duration::from_millis(50)).unwrap(),
