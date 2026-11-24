@@ -66,7 +66,7 @@ cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi
 rustix = { version = "1.1", features = ["event", "termios"], optional = true }
 clap_builder = { version = "4", default-features = false, features = ["std", "help", "usage", "error-context"], optional = true }
 signal-hook = { version = "0.3", default-features = false, optional = true }
-tui-display = { package = "vauchi-tui-display", git = "https://gitlab.com/vauchi/tui-display.git", tag = "v0.4.0", version = "=0.4.0", optional = true }
+tui-display = { package = "vauchi-tui-display", git = "https://gitlab.com/vauchi/tui-display.git", tag = "v0.4.1", version = "=0.4.1", optional = true }
 crossterm = { version = "0.28", optional = true }
 ratatui-core = { version = "0.1.2", default-features = false, features = ["std", "layout-cache", "underline-color"], optional = true }
 ratatui-crossterm = { version = "0.1.2", default-features = false, features = ["crossterm_0_28", "underline-color"], optional = true }
