@@ -3793,8 +3793,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-app"
-version = "0.108.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.108.0#f8bc2667b2f40880ea3030ccb4b825c09be6f41d"
+version = "0.109.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.109.0#f205fa79f89bb62069fe2332508c57b7e90a7412"
 dependencies = [
  "base64 0.22.1",
  "flate2",
@@ -3817,7 +3817,7 @@ version = "0.2.4"
 source = "git+https://gitlab.com/vauchi/cli-display.git?tag=v0.1.7#787c5821d41b86f8dfdb71b5e0bc00994c12f923"
 dependencies = [
  "console",
- "vauchi-contract",
+ "vauchi-contract 0.99.0",
 ]
 
 [[package]]
@@ -3832,9 +3832,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "vauchi-contract"
+version = "0.101.0"
+source = "git+https://gitlab.com/vauchi/contract.git?tag=v0.101.0#b73800c00602fef938445f0e08e70d048929bee6"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
+ "zeroize",
+]
+
+[[package]]
 name = "vauchi-core"
-version = "0.108.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.108.0#f8bc2667b2f40880ea3030ccb4b825c09be6f41d"
+version = "0.109.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.109.0#f205fa79f89bb62069fe2332508c57b7e90a7412"
 dependencies = [
  "argon2",
  "base64 0.22.1",
@@ -3869,7 +3880,7 @@ dependencies = [
  "ureq",
  "url",
  "uuid",
- "vauchi-contract",
+ "vauchi-contract 0.101.0",
  "vauchi-protocol",
  "webpki-roots",
  "winapi-util",
@@ -3887,7 +3898,7 @@ dependencies = [
  "libadwaita",
  "qrcode",
  "serde_json",
- "vauchi-contract",
+ "vauchi-contract 0.99.0",
  "yeslogic-fontconfig-sys",
 ]
 
@@ -3908,7 +3919,7 @@ dependencies = [
  "tempfile",
  "vauchi-app",
  "vauchi-cli-display",
- "vauchi-contract",
+ "vauchi-contract 0.101.0",
  "vauchi-core",
  "vauchi-gtk",
  "vauchi-linux-hw",
@@ -3933,14 +3944,14 @@ dependencies = [
  "thiserror",
  "tokio",
  "uuid",
- "vauchi-contract",
+ "vauchi-contract 0.99.0",
  "zbus",
 ]
 
 [[package]]
 name = "vauchi-protocol"
-version = "0.108.0"
-source = "git+https://gitlab.com/vauchi/core.git?tag=v0.108.0#f8bc2667b2f40880ea3030ccb4b825c09be6f41d"
+version = "0.109.0"
+source = "git+https://gitlab.com/vauchi/core.git?tag=v0.109.0#f205fa79f89bb62069fe2332508c57b7e90a7412"
 dependencies = [
  "serde",
  "serde_json",
@@ -3958,7 +3969,7 @@ dependencies = [
  "ratatui-widgets",
  "serde",
  "serde_json",
- "vauchi-contract",
+ "vauchi-contract 0.99.0",
 ]
 
 [[package]]
@@ -4488,6 +4499,7 @@ version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879"
 dependencies = [
+ "serde",
  "zeroize_derive",
 ]
 

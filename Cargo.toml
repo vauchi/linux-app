@@ -46,11 +46,11 @@ required-features = ["cli"]
 [dependencies]
 # Core, the hardware shell and the display shells all on contract v0.98.0
 # (ADR-078 decision 6); deny.toml refuses a second copy of any of them (D-5).
-vauchi-core = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.108.0", version = "=0.108.0", features = ["secure-storage-linux"] }
+vauchi-core = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.109.0", version = "=0.109.0", features = ["secure-storage-linux"] }
 # `network`: Core compiles its relay sessions (device link among them) only
 # with network-http, which its default features leave out (private#1297).
-vauchi-app = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.108.0", version = "=0.108.0", features = ["network"] }
-vauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.99.0", version = "=0.99.0" }
+vauchi-app = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.109.0", version = "=0.109.0", features = ["network"] }
+vauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.101.0", version = "=0.101.0" }
 # gio's NetworkMonitor for the network-cost report; the same gtk4 the
 # display shell links (deny.toml refuses a second copy).
 gtk4 = { version = "0.9", optional = true }
