@@ -3949,8 +3949,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-tui-display"
-version = "0.4.1"
-source = "git+https://gitlab.com/vauchi/tui-display.git?tag=v0.4.1#208094c5f3138eca16dc2c41d969ca555f42c6b2"
+version = "0.5.0"
+source = "git+https://gitlab.com/vauchi/tui-display.git?tag=v0.5.0#f9e4b0ae275e3d8b761e6f533a0933368040ea4b"
 dependencies = [
  "anyhow",
  "crossterm",

@@ -148,6 +148,24 @@ impl<E: CommandEngine> HardwareBridge<E> {
     }
 }
 
+/// The bridge is the host tui-display's shared loop drives (private#1234).
+#[cfg(feature = "tui")]
+impl<E: CommandEngine> tui_display::host::TerminalHost for HardwareBridge<E> {
+    type Error = ExecuteError;
+
+    fn dispatch(&mut self, event: Event) -> Result<(), ExecuteError> {
+        HardwareBridge::dispatch(self, event)
+    }
+
+    fn poll(&mut self) -> Result<bool, ExecuteError> {
+        HardwareBridge::poll(self)
+    }
+
+    fn take_commands(&mut self) -> Vec<Command> {
+        HardwareBridge::take_commands(self)
+    }
+}
+
 /// The transport name Core learns when no Linux port serves the command.
 /// Names match the ones the GTK renderer's fallback reported (#1252):
 /// "Camera" (capital C) is the name Core answers a missing QR scanner
@@ -409,7 +427,7 @@ pub fn run_qt() -> Result<i32, Box<dyn std::error::Error>> {
 
 #[cfg(feature = "tui")]
 pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
-    use crate::terminal_tui::{CrosstermEvents, TerminalMode, TuiTerminal};
+    use tui_display::terminal::{CrosstermEvents, TerminalMode, TuiTerminal};
     let engine = start_shared_engine(false)?;
     let hardware = LinuxHardware::start()?;
     let bridge = HardwareBridge::new(engine, hardware)?;
@@ -418,7 +436,7 @@ pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
     let backend = ratatui_crossterm::CrosstermBackend::new(std::io::stdout());
     let mut output = ratatui_core::terminal::Terminal::new(backend)?;
     let mut terminal = TuiTerminal::new(&mut output, CrosstermEvents, tui_feedback).with_mode(mode);
-    crate::terminal::run_terminal_with_shutdown(bridge, &mut terminal, || shutdown.requested())?;
+    tui_display::host::run_terminal_with_shutdown(bridge, &mut terminal, || shutdown.requested())?;
     Ok(())
 }
 
@@ -428,7 +446,7 @@ pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(feature = "tui")]
 fn tui_feedback(
     commands: &[Command],
-    feedback: &mut crate::terminal::TerminalFeedback,
+    feedback: &mut tui_display::host::TerminalFeedback,
 ) -> std::io::Result<()> {
     for command in commands {
         match command {
@@ -526,7 +544,7 @@ mod tests {
 #[cfg(all(test, feature = "tui"))]
 mod tui_feedback_tests {
     use super::*;
-    use crate::terminal::TerminalFeedback;
+    use tui_display::host::TerminalFeedback;
 
     // @internal — an effect with no terminal form ended the app (vauchi/private#1233).
     #[test]
