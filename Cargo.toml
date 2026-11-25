@@ -44,7 +44,7 @@ path = "src/bin/vauchi.rs"
 required-features = ["cli"]
 
 [dependencies]
-# Core, the hardware shell and the display shells all on contract v0.98.0
+# Core, the hardware shell and the display shells all on contract v0.101.0
 # (ADR-078 decision 6); deny.toml refuses a second copy of any of them (D-5).
 vauchi-core = { git = "https://gitlab.com/vauchi/core.git", tag = "v0.109.0", version = "=0.109.0", features = ["secure-storage-linux"] }
 # `network`: Core compiles its relay sessions (device link among them) only
@@ -56,17 +56,17 @@ vauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.10
 gtk4 = { version = "0.9", optional = true }
 # The catalog renderer's window chrome; the version gtk-display links.
 libadwaita = { version = "0.7", features = ["v1_4"], optional = true }
-vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.102.0", version = "=0.102.0", features = ["audio", "camera", "mdns"] }
+vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.103.0", version = "=0.103.0", features = ["audio", "camera", "mdns"] }
 # The GTK display shell, repository `gtk-display` since 2026-11-11; its
 # crate is still `vauchi-gtk` (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.13.0", version = "=0.13.0", optional = true }
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.14.0", version = "=0.14.0", optional = true }
 qt-display = { git = "https://gitlab.com/vauchi/qt-display.git", tag = "v0.1.5", version = "=0.1.5", optional = true }
 serde_json = "1"
-cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi/cli-display.git", tag = "v0.1.7", version = "=0.2.4", optional = true }
+cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi/cli-display.git", tag = "v0.1.8", version = "=0.3.0", optional = true }
 rustix = { version = "1.1", features = ["event", "termios"], optional = true }
 clap_builder = { version = "4", default-features = false, features = ["std", "help", "usage", "error-context"], optional = true }
 signal-hook = { version = "0.3", default-features = false, optional = true }
-tui-display = { package = "vauchi-tui-display", git = "https://gitlab.com/vauchi/tui-display.git", tag = "v0.5.0", version = "=0.5.0", optional = true }
+tui-display = { package = "vauchi-tui-display", git = "https://gitlab.com/vauchi/tui-display.git", tag = "v0.6.0", version = "=0.6.0", optional = true }
 crossterm = { version = "0.28", optional = true }
 ratatui-core = { version = "0.1.2", default-features = false, features = ["std", "layout-cache", "underline-color"], optional = true }
 ratatui-crossterm = { version = "0.1.2", default-features = false, features = ["crossterm_0_28", "underline-color"], optional = true }

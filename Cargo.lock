@@ -925,7 +925,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1273,7 +1273,7 @@ dependencies = [
  "gobject-sys",
  "libc",
  "system-deps",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2914,7 +2914,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2927,7 +2927,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3400,10 +3400,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.6",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3813,22 +3813,11 @@ dependencies = [
 
 [[package]]
 name = "vauchi-cli-display"
-version = "0.2.4"
-source = "git+https://gitlab.com/vauchi/cli-display.git?tag=v0.1.7#787c5821d41b86f8dfdb71b5e0bc00994c12f923"
+version = "0.3.0"
+source = "git+https://gitlab.com/vauchi/cli-display.git?tag=v0.1.8#87e6b07f241b6137b18d6e073b79466844bf2085"
 dependencies = [
  "console",
- "vauchi-contract 0.99.0",
-]
-
-[[package]]
-name = "vauchi-contract"
-version = "0.99.0"
-source = "git+https://gitlab.com/vauchi/contract.git?tag=v0.99.0#e4401c512be34dadfe9232c671597c35e6db6a10"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror",
- "zeroize",
+ "vauchi-contract",
 ]
 
 [[package]]
@@ -3880,7 +3869,7 @@ dependencies = [
  "ureq",
  "url",
  "uuid",
- "vauchi-contract 0.101.0",
+ "vauchi-contract",
  "vauchi-protocol",
  "webpki-roots",
  "winapi-util",
@@ -3890,15 +3879,15 @@ dependencies = [
 
 [[package]]
 name = "vauchi-gtk"
-version = "0.13.0"
-source = "git+https://gitlab.com/vauchi/gtk-display.git?tag=v0.13.0#d1681f114401e8fe9b2122a28cede54ad80fa3ab"
+version = "0.14.0"
+source = "git+https://gitlab.com/vauchi/gtk-display.git?tag=v0.14.0#b9c803ff33b4eb302e0bb5568415030fa66b223f"
 dependencies = [
  "glib-build-tools",
  "gtk4",
  "libadwaita",
  "qrcode",
  "serde_json",
- "vauchi-contract 0.99.0",
+ "vauchi-contract",
  "yeslogic-fontconfig-sys",
 ]
 
@@ -3919,7 +3908,7 @@ dependencies = [
  "tempfile",
  "vauchi-app",
  "vauchi-cli-display",
- "vauchi-contract 0.101.0",
+ "vauchi-contract",
  "vauchi-core",
  "vauchi-gtk",
  "vauchi-linux-hw",
@@ -3928,8 +3917,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-linux-hw"
-version = "0.102.0"
-source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.102.0#d2c5ad7e83213b4e263840d3684a297593abc62f"
+version = "0.103.0"
+source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.103.0#7c99ffbea8e4b39e78f868852608f695bb339dd2"
 dependencies = [
  "alsa",
  "futures-util",
@@ -3944,7 +3933,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "uuid",
- "vauchi-contract 0.99.0",
+ "vauchi-contract",
  "zbus",
 ]
 
@@ -3960,8 +3949,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-tui-display"
-version = "0.5.0"
-source = "git+https://gitlab.com/vauchi/tui-display.git?tag=v0.5.0#f9e4b0ae275e3d8b761e6f533a0933368040ea4b"
+version = "0.6.0"
+source = "git+https://gitlab.com/vauchi/tui-display.git?tag=v0.6.0#6d7090d0a39f1ebaba40974550d019c080c49e34"
 dependencies = [
  "anyhow",
  "crossterm",
@@ -3969,7 +3958,7 @@ dependencies = [
  "ratatui-widgets",
  "serde",
  "serde_json",
- "vauchi-contract 0.99.0",
+ "vauchi-contract",
 ]
 
 [[package]]
@@ -4092,7 +4081,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
