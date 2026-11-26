@@ -14,6 +14,7 @@ Build-Depends: debhelper-compat (= 13),
                libdbus-1-dev,
                dbus-daemon,
                libclang-dev,
+               nasm,
                libadwaita-1-dev,
                libqrencode-dev,
                libfontconfig1-dev,
@@ -33,7 +34,7 @@ Rules-Requires-Root: no
 Package: gvauchi
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: pipewire (>= 0.3.77), wireplumber
+Recommends: vauchi-camera-pipewire | vauchi-camera-v4l2
 Conflicts: qvauchi
 Replaces: vauchi-gtk
 Breaks: vauchi-gtk
@@ -47,7 +48,7 @@ Description: Privacy-focused updatable contact cards (GTK desktop)
 Package: qvauchi
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: pipewire (>= 0.3.77), wireplumber
+Recommends: vauchi-camera-pipewire | vauchi-camera-v4l2
 Conflicts: gvauchi
 Replaces: vauchi-qt
 Breaks: vauchi-qt
@@ -58,3 +59,19 @@ Description: Privacy-focused updatable contact cards (Qt desktop)
  qvauchi, the native Linux desktop client built with Qt 6. It replaces
  the vauchi-qt package. Install gvauchi or qvauchi, not both: they share
  one data directory.
+
+Package: vauchi-camera-pipewire
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: pipewire (>= 0.3.77), wireplumber
+Description: Optional PipeWire camera capture and QR preview for Vauchi
+ Capture and decode QR codes through PipeWire. This optional provider serves
+ both gvauchi and qvauchi. Camera permissions use the portal in Flatpak.
+
+Package: vauchi-camera-v4l2
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Optional direct V4L2 camera capture and QR preview for Vauchi
+ Capture and decode QR codes directly through V4L2 without PipeWire.
+ This native-package provider serves both gvauchi and qvauchi.
+ Set VAUCHI_CAMERA_BACKEND=direct to prefer it when both are installed.

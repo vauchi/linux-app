@@ -14,7 +14,6 @@ BuildRequires:  cargo
 BuildRequires:  rust
 BuildRequires:  gtk4-devel
 BuildRequires:  alsa-lib-devel
-BuildRequires:  pkgconfig(libpipewire-0.3) >= 0.3.77
 BuildRequires:  dbus-devel
 BuildRequires:  clang-devel
 BuildRequires:  fontconfig-devel
@@ -23,8 +22,7 @@ BuildRequires:  qrencode-devel
 BuildRequires:  pkgconfig
 
 Requires:       gtk4
-Recommends:     pipewire >= 0.3.77
-Recommends:     wireplumber
+Recommends:     (vauchi-camera-pipewire or vauchi-camera-v4l2)
 Conflicts:      qvauchi
 Obsoletes:      vauchi-gtk < 0.8.0
 Provides:       vauchi-gtk = %{version}-%{release}
@@ -68,7 +66,7 @@ install -m 644 data/fonts/*.ttf %{buildroot}%{_datadir}/fonts/vauchi/
 
 %changelog
 * Thu Nov 26 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.11.0-1
-- Add PipeWire camera capture and live QR preview with portal remote handoff
+- Add optional camera providers and native live QR preview
 
 * Thu Nov 05 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.10.1-1
 - Align package metadata with the app and consume GTK v0.10.0

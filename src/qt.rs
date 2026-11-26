@@ -68,17 +68,23 @@ pub fn run<E: CommandEngine + 'static>(
     args: &[String],
     bridge: HardwareBridge<E>,
 ) -> Result<i32, QtHostError> {
-    #[cfg(feature = "camera-pipewire")]
+    #[cfg(feature = "camera-modules")]
+    let preview_resolver = crate::native_preview::qt_resolver(bridge.frame_directory());
+    #[cfg(all(feature = "camera-pipewire", not(feature = "camera-modules")))]
     let preview_resolver = crate::camera_preview::qt_resolver(bridge.preview_directory());
-    #[cfg(not(feature = "camera-pipewire"))]
+    #[cfg(not(any(feature = "camera-pipewire", feature = "camera-modules")))]
     let preview_resolver: qt_display::SourceResolver = Box::new(|_| Ok(None));
+    #[cfg(feature = "camera-modules")]
+    let run_display = qt_display::run_with_native_preview;
+    #[cfg(not(feature = "camera-modules"))]
+    let run_display = qt_display::run_with_camera;
     let host = Rc::new(RefCell::new(QtHost::new(bridge)?));
     let failure = Rc::new(Cell::new(None));
     let events = host.clone();
     let event_failure = failure.clone();
     let ticks = host.clone();
     let tick_failure = failure.clone();
-    let exit = qt_display::run_with_camera(
+    let exit = run_display(
         args,
         Box::new(move |json| {
             if event_failure.get().is_some() {

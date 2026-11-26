@@ -12,10 +12,13 @@ description = "The Linux app: Core, the linux-hw hardware shell and the GTK disp
 publish = false
 
 [features]
-default = ["gtk", "camera-pipewire"]
+default = ["gtk", "camera-modules"]
 gtk = ["dep:gtk4", "dep:libadwaita", "dep:gtk-display"]
 qt = ["dep:qt-display"]
 camera-pipewire = ["vauchi-linux-hw/camera-preview", "gtk-display?/camera-preview", "qt-display?/camera-preview"]
+camera-modules = ["vauchi-linux-hw/camera-modules"]
+capture-pipewire = ["vauchi-linux-hw/camera-preview", "vauchi-linux-hw/camera-helper"]
+capture-v4l2 = ["vauchi-linux-hw/camera", "vauchi-linux-hw/camera-helper"]
 cli = ["dep:cli-display", "dep:rustix", "dep:clap_builder", "dep:signal-hook"]
 tui = ["dep:tui-display", "dep:crossterm", "dep:ratatui-core", "dep:ratatui-crossterm", "dep:signal-hook"]
 # NFC over PC/SC needs libpcsclite on the build host; off by default.
@@ -44,6 +47,16 @@ name = "vauchi"
 path = "src/bin/vauchi.rs"
 required-features = ["cli"]
 
+[[bin]]
+name = "vauchi-camera-pipewire"
+path = "src/bin/vauchi-camera-pipewire.rs"
+required-features = ["capture-pipewire"]
+
+[[bin]]
+name = "vauchi-camera-v4l2"
+path = "src/bin/vauchi-camera-v4l2.rs"
+required-features = ["capture-v4l2"]
+
 [dependencies]
 # Core, the hardware shell and the display shells all on contract v0.101.0
 # (ADR-078 decision 6); deny.toml refuses a second copy of any of them (D-5).
@@ -57,11 +70,11 @@ vauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.10
 gtk4 = { version = "0.9", optional = true }
 # The catalog renderer's window chrome; the version gtk-display links.
 libadwaita = { version = "0.7", features = ["v1_4"], optional = true }
-vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.104.0", version = "=0.104.0", default-features = false, features = ["audio", "mdns"] }
+vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", rev = "ff78f8c2cedc3ba399b379bb58b24c442e080133", version = "=0.105.0", default-features = false, features = ["audio", "mdns"] }
 # The GTK display shell, repository `gtk-display` since 2026-11-11; its
 # crate is still `vauchi-gtk` (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.15.0", version = "=0.15.0", optional = true, default-features = false }
-qt-display = { git = "https://gitlab.com/vauchi/qt-display.git", tag = "v0.2.0", version = "=0.2.0", optional = true, default-features = false }
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", rev = "6b8950cc41a455f62f1daaa4cabd1553234e2437", version = "=0.16.0", optional = true, default-features = false }
+qt-display = { git = "https://gitlab.com/vauchi/qt-display.git", rev = "aae27bde56d8c0cfdb8377ac2a06776e9ee1385d", version = "=0.3.0", optional = true, default-features = false }
 serde_json = "1"
 cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi/cli-display.git", tag = "v0.1.8", version = "=0.3.0", optional = true }
 rustix = { version = "1.1", features = ["event", "termios"], optional = true }

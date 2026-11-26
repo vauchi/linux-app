@@ -98,9 +98,13 @@ build:gvauchi:
     - !reference [.camera-sdk, before_script]
   script:
     - cargo build --release --bins
+    - cargo build --locked --release --no-default-features --features capture-pipewire --bin vauchi-camera-pipewire
+    - cargo build --locked --release --no-default-features --features capture-v4l2 --bin vauchi-camera-v4l2
   artifacts:
     paths:
       - target/release/gvauchi
+      - target/release/vauchi-camera-pipewire
+      - target/release/vauchi-camera-v4l2
       - target/release/seed-identity
       - target/release/render_catalog
     expire_in: 1 week
@@ -144,7 +148,7 @@ build:qvauchi:
     - !reference [.self-hosted, before_script]
     - !reference [.camera-sdk, before_script]
   script:
-    - cargo build --locked --release --no-default-features --features qt,camera-pipewire --bin qvauchi
+    - cargo build --locked --release --no-default-features --features qt,camera-modules --bin qvauchi
   artifacts:
     paths:
       - target/release/qvauchi
@@ -334,7 +338,12 @@ test:shared:
     - python3 ci/tests/registry-launch.test.py
     - bash ci/tests/camera-dependencies.test.sh gtk
     - bash ci/tests/camera-dependencies.test.sh qt
+    - bash ci/tests/camera-dependencies.test.sh gtk,camera-modules
+    - bash ci/tests/camera-dependencies.test.sh qt,camera-modules
     - if bash ci/tests/camera-dependencies.test.sh gtk,camera-pipewire; then echo "FAIL — camera graph guard accepted PipeWire"; exit 1; fi
+    - bash ci/tests/direct-camera-dependencies.test.sh
+    - if bash ci/tests/direct-camera-dependencies.test.sh capture-pipewire; then echo "FAIL — direct provider guard accepted PipeWire"; exit 1; fi
+    - if bash ci/tests/direct-camera-dependencies.test.sh gtk; then echo "FAIL — direct provider guard accepted no camera"; exit 1; fi
     - bash ci/tests/headless-dependencies.test.sh
     - bash ci/tests/headless-dependencies.test.sh cli
     - bash ci/tests/headless-dependencies.test.sh tui
@@ -360,6 +369,8 @@ test:qt:
     - if bash ci/tests/qt-dependencies.test.sh qt,gtk; then echo "FAIL — Qt graph guard accepted GTK"; exit 1; fi
     - if bash ci/tests/qt-dependencies.test.sh ''; then echo "FAIL — Qt graph guard accepted missing display"; exit 1; fi
     - cargo test --locked --no-default-features --features qt --all-targets
+    - cargo test --locked --no-default-features --features qt,camera-modules --all-targets
+    - cargo clippy --locked --no-default-features --features qt,camera-modules --all-targets -- -D warnings
     - cargo test --locked --no-default-features --features qt,camera-pipewire --all-targets
     - cargo clippy --locked --no-default-features --features qt,camera-pipewire --all-targets -- -D warnings
   rules:
@@ -398,7 +409,7 @@ package:deb:
     - apt-get install -y -qq devscripts debhelper
         libgtk-4-dev libadwaita-1-dev libqrencode-dev pkg-config
         libasound2-dev libdbus-1-dev libclang-dev libfontconfig1-dev
-        libpipewire-0.3-dev
+        libpipewire-0.3-dev nasm
         qt6-base-dev cmake g++ xvfb xauth dbus-daemon
   script:
     # -d: debian/control's Build-Depends name Debian's cargo and rustc,
@@ -407,6 +418,14 @@ package:deb:
     - mkdir -p deb-out && cp ../*.deb deb-out/
     # gvauchi and qvauchi: one or the other, each starting its own binary.
     - sh ci/tests/packages.test.sh deb-out
+    - |
+      canary=$(mktemp -d)
+      cp deb-out/gvauchi_*.deb deb-out/qvauchi_*.deb "$canary/"
+      if sh ci/tests/packages.test.sh "$canary"; then
+        echo 'FAIL: package guard accepted missing optional providers'
+        exit 1
+      fi
+      rm -rf "$canary"
   artifacts:
     paths:
       - deb-out/*.deb
@@ -431,7 +450,7 @@ package:rpm:
     - dnf install -y rpm-build cargo rust gtk4-devel libadwaita-devel
         qrencode-devel pkgconfig alsa-lib-devel dbus-devel clang-devel
         fontconfig-devel qt6-qtbase-devel cmake gcc-c++
-        pipewire-devel xorg-x11-server-Xvfb xorg-x11-xauth dbus-daemon
+        pipewire-devel nasm xorg-x11-server-Xvfb xorg-x11-xauth dbus-daemon
   script:
     - mkdir -p rpmbuild/{SOURCES,SPECS}
     # The tarball follows Cargo.toml; a spec Version that disagrees fails
@@ -439,7 +458,7 @@ package:rpm:
     # two specs: both install app.vauchi.Vauchi.desktop with another Exec.
     - VERSION=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)
     - |
-      for app in gvauchi qvauchi; do
+      for app in gvauchi qvauchi vauchi-camera; do
         tar czf "rpmbuild/SOURCES/${app}-${VERSION}.tar.gz" \
           --transform "s,^,${app}-${VERSION}/," --exclude=rpmbuild .
         cp "packaging/${app}.spec" rpmbuild/SPECS/
@@ -453,7 +472,7 @@ package:rpm:
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes: [packaging/gvauchi.spec, packaging/qvauchi.spec]
+      changes: [packaging/gvauchi.spec, packaging/qvauchi.spec, packaging/vauchi-camera.spec]
     - when: manual
       allow_failure: true
 

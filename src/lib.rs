@@ -8,6 +8,8 @@
 mod camera_preview;
 pub mod engine;
 pub mod locale;
+#[cfg(feature = "camera-modules")]
+mod native_preview;
 #[cfg(feature = "qt")]
 pub mod qt;
 pub mod relay_setting;

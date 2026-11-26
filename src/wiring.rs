@@ -61,6 +61,11 @@ impl<E: CommandEngine> HardwareBridge<E> {
         self.hardware.preview_directory()
     }
 
+    #[cfg(feature = "camera-modules")]
+    pub fn frame_directory(&self) -> Option<vauchi_linux_hw::frame_directory::FrameDirectory> {
+        self.hardware.frame_directory()
+    }
+
     /// The next hardware observation, if any. A host with its own main
     /// loop pumps it (the GTK pairing's 50 ms timer); `poll` and
     /// `wait_for_event` cover hosts that block instead.
@@ -240,8 +245,10 @@ impl<E: CommandEngine + 'static> BridgeEngine<E> {
     }
 
     pub fn new(engine: E, hardware: LinuxHardware) -> Result<Rc<Self>, ExecuteError> {
-        #[cfg(feature = "camera-pipewire")]
+        #[cfg(all(feature = "camera-pipewire", not(feature = "camera-modules")))]
         crate::camera_preview::install_gtk(hardware.preview_directory());
+        #[cfg(feature = "camera-modules")]
+        crate::native_preview::install_gtk(hardware.frame_directory());
         let mut bridge = HardwareBridge::new(engine, hardware)?;
         // The constructor routed Core's boot projection once for its
         // hardware side effects. initial_commands() recomputes that

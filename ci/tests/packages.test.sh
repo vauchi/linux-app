@@ -49,6 +49,13 @@ if [ -n "$gtk" ] && [ -n "$qt" ]; then
     done
     ships "$qt" usr/bin/qvauchi || fail "qvauchi does not ship usr/bin/qvauchi"
     ships "$gtk" usr/bin/gvauchi || fail "gvauchi does not ship usr/bin/gvauchi"
+    for package in "$gtk" "$qt"; do
+        if field Depends "$package" | grep -Eq 'pipewire|wireplumber|vauchi-camera'; then
+            fail "base app has a mandatory camera dependency"
+        fi
+        field Recommends "$package" | grep -F 'vauchi-camera-pipewire | vauchi-camera-v4l2' >/dev/null \
+            || fail "base app does not recommend alternative camera providers"
+    done
     entry "$qt" | grep -qx 'Exec=qvauchi %u' || fail "qvauchi's desktop entry does not start qvauchi"
     entry "$gtk" | grep -qx 'Exec=gvauchi %u' || fail "gvauchi's desktop entry does not start gvauchi"
     if entry "$qt" | grep -q '^DBusActivatable=true'; then
@@ -58,6 +65,19 @@ if [ -n "$gtk" ] && [ -n "$qt" ]; then
         fail "qvauchi ships a D-Bus service file"
     fi
 fi
+
+for backend in pipewire v4l2; do
+    package=$(deb_of "vauchi-camera-$backend")
+    if [ -z "$package" ]; then
+        fail "no optional $backend camera package in $dir"
+        continue
+    fi
+    ships "$package" "usr/libexec/vauchi/vauchi-camera-$backend" \
+        || fail "$backend package does not ship its capture provider"
+    if [ "$backend" = v4l2 ] && field Depends "$package" | grep -Eq 'pipewire|wireplumber'; then
+        fail "direct camera provider depends on PipeWire"
+    fi
+done
 
 if [ "$failures" -ne 0 ]; then
     echo "packages.test.sh: $failures failure(s)"

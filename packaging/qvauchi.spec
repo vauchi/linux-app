@@ -21,7 +21,6 @@ BuildRequires:  qt6-qtbase-devel
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
 BuildRequires:  alsa-lib-devel
-BuildRequires:  pkgconfig(libpipewire-0.3) >= 0.3.77
 BuildRequires:  dbus-devel
 BuildRequires:  dbus-daemon
 BuildRequires:  clang-devel
@@ -32,8 +31,7 @@ BuildRequires:  xorg-x11-server-Xvfb
 BuildRequires:  xorg-x11-xauth
 
 Requires:       qt6-qtbase
-Recommends:     pipewire >= 0.3.77
-Recommends:     wireplumber
+Recommends:     (vauchi-camera-pipewire or vauchi-camera-v4l2)
 Requires:       qrencode-libs
 Conflicts:      gvauchi
 Obsoletes:      vauchi-qt < 0.6.0
@@ -50,7 +48,7 @@ share one data directory.
 %autosetup
 
 %build
-cargo build --release --no-default-features --features qt,camera-pipewire --bin qvauchi
+cargo build --release --no-default-features --features qt,camera-modules --bin qvauchi
 
 %install
 install -Dm 755 target/release/qvauchi \
@@ -77,7 +75,7 @@ install -m 644 data/fonts/*.ttf %{buildroot}%{_datadir}/fonts/vauchi/
 
 %changelog
 * Thu Nov 26 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.11.0-1
-- Add PipeWire camera capture and live QR preview with portal remote handoff
+- Add optional camera providers and native live QR preview
 
 * Wed Nov 11 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.10.1-1
 - First qvauchi package, built from linux-app: it replaces vauchi-qt

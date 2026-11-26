@@ -27,6 +27,8 @@ cp data/app.vauchi.Vauchi.svg \
 export DEPLOY_GTK_VERSION=4
 # PipeWire dynamically loads host modules; its client library must match them.
 linuxdeploy --appdir "$APPDIR" \
+  --executable target/release/vauchi-camera-pipewire \
+  --executable target/release/vauchi-camera-v4l2 \
   --exclude-library 'libpipewire-0.3.so*' \
   --desktop-file "${APPDIR}/usr/share/applications/app.vauchi.Vauchi.desktop" \
   --icon-file "${APPDIR}/usr/share/icons/hicolor/scalable/apps/app.vauchi.Vauchi.svg" \

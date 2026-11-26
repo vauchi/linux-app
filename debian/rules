@@ -11,9 +11,15 @@ export CARGO_HOME = $(CURDIR)/debian/.cargo
 # The Qt binary builds without the GTK feature, as test:qt requires.
 override_dh_auto_build:
 	cargo build --release --bin gvauchi
-	cargo build --release --no-default-features --features qt,camera-pipewire --bin qvauchi
+	cargo build --release --no-default-features --features qt,camera-modules --bin qvauchi
+	cargo build --release --no-default-features --features capture-pipewire --bin vauchi-camera-pipewire
+	cargo build --release --no-default-features --features capture-v4l2 --bin vauchi-camera-v4l2
 
 override_dh_auto_install:
+	install -Dm 755 target/release/vauchi-camera-pipewire \
+		debian/vauchi-camera-pipewire/usr/libexec/vauchi/vauchi-camera-pipewire
+	install -Dm 755 target/release/vauchi-camera-v4l2 \
+		debian/vauchi-camera-v4l2/usr/libexec/vauchi/vauchi-camera-v4l2
 	install -Dm 755 target/release/gvauchi \
 		debian/gvauchi/usr/bin/gvauchi
 	install -Dm 644 data/app.vauchi.Vauchi.desktop \

@@ -5,7 +5,7 @@
 set -eu
 
 root=${1:-.}
-for file in Cargo.toml debian/changelog packaging/gvauchi.spec packaging/qvauchi.spec; do
+for file in Cargo.toml debian/changelog packaging/gvauchi.spec packaging/qvauchi.spec packaging/vauchi-camera.spec; do
     [ -f "$root/$file" ] || { echo "Missing $file" >&2; exit 1; }
 done
 
@@ -29,6 +29,11 @@ rpm_version=$(sed -n 's/^Version:[[:space:]]*\([^[:space:]]*\)[[:space:]]*$/\1/p
 qt_rpm_version=$(sed -n 's/^Version:[[:space:]]*\([^[:space:]]*\)[[:space:]]*$/\1/p' "$root/packaging/qvauchi.spec")
 [ "$qt_rpm_version" = "$cargo_version" ] || {
     echo "RPM package version ${qt_rpm_version:-(none)} (qvauchi) differs from Cargo $cargo_version" >&2
+    exit 1
+}
+camera_rpm_version=$(sed -n 's/^Version:[[:space:]]*\([^[:space:]]*\)[[:space:]]*$/\1/p' "$root/packaging/vauchi-camera.spec")
+[ "$camera_rpm_version" = "$cargo_version" ] || {
+    echo "RPM package version ${camera_rpm_version:-(none)} (vauchi-camera) differs from Cargo $cargo_version" >&2
     exit 1
 }
 echo "release versions agree: $cargo_version"
