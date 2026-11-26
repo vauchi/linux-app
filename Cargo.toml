@@ -57,7 +57,7 @@ gtk4 = { version = "0.9", optional = true }
 # The catalog renderer's window chrome; the version gtk-display links.
 libadwaita = { version = "0.7", features = ["v1_4"], optional = true }
 # Draft assembly uses immutable SDK commits until their release tags exist.
-vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", rev = "744314e986ceefd835426f17e3932b0becbc7ea6", version = "=0.104.0", features = ["audio", "mdns"] }
+vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", rev = "e8950016fd7078a88a52c4a279fd5fe3efbc3eed", version = "=0.104.0", features = ["audio", "mdns"] }
 # The GTK display shell, repository `gtk-display` since 2026-11-11; its
 # crate is still `vauchi-gtk` (ADR-078 step 4).
 gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", rev = "b03f752778143eff4eed1aecc7108d1fec4c5fbb", version = "=0.15.0", optional = true }
