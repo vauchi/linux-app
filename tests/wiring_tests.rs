@@ -133,3 +133,32 @@ fn a_ported_command_without_a_device_is_taken_and_reports_nothing() {
     assert_eq!(bridge.pop_event(), None);
     assert_eq!(events.borrow().len(), 1);
 }
+
+// @internal — a hardware observation crosses the app to Core unchanged.
+#[test]
+fn hardware_unavailable_event_reaches_core_unchanged() {
+    let engine = Engine {
+        events: Rc::default(),
+        initial: vec![],
+        replies: RefCell::new(VecDeque::new()),
+    };
+    let events = engine.events.clone();
+    let hardware = vauchi_linux_hw::LinuxHardware::with_backends(Backends::default(), no_devices())
+        .expect("the hardware shell starts with no devices");
+    let mut bridge = HardwareBridge::new(engine, hardware).unwrap();
+
+    bridge
+        .dispatch(Event::HardwareUnavailable {
+            transport: "BLE".into(),
+        })
+        .unwrap();
+
+    assert!(
+        matches!(
+            events.borrow().get(1),
+            Some(Event::HardwareUnavailable { transport }) if transport == "BLE"
+        ),
+        "the observation must reach Core unchanged: {:?}",
+        events.borrow()
+    );
+}

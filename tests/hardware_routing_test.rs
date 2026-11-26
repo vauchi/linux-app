@@ -56,6 +56,17 @@ fn initial_commands_return_only_display_commands() {
     assert_eq!(bridge.initial_commands(), vec![Command::PerformNativeBack]);
 }
 
+// @internal — a display command crosses the app with its payload unchanged.
+#[test]
+fn display_command_reaches_the_renderer_unchanged() {
+    let command = Command::QrDisplay {
+        data: "vauchi://exchange/abc123".into(),
+    };
+    let engine = engine(vec![command.clone()], vec![]);
+    let bridge = BridgeEngine::new(engine, hardware()).unwrap();
+    assert_eq!(bridge.initial_commands(), vec![command]);
+}
+
 // @internal — a dispatch's hardware commands are executed, never returned to the renderer.
 #[test]
 fn dispatch_returns_only_display_commands() {
