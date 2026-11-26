@@ -22,6 +22,29 @@ impl CommandEngine for Engine {
     }
 }
 
+// @internal — verify the published hardware/display resource contract across SDKs.
+#[cfg(feature = "gtk")]
+#[test]
+fn hardware_native_frames_are_consumed_by_the_installed_gtk_sdk() {
+    use vauchi_linux_hw::camera_frame::{CameraFrame, PixelFormat};
+    let writer = FrameWriter::initialize(tempfile::tempfile().unwrap()).unwrap();
+    let frame = CameraFrame::from_raw(PixelFormat::Rgba, 2, 1, 8, 0, &[1, 2, 3, 255, 4, 5, 6, 255])
+        .unwrap();
+    let mut display =
+        gtk_display::core_ui::camera_preview::NativePreviewReader::new(writer.reader_fd().unwrap())
+            .unwrap();
+    assert!(writer.write(&frame).unwrap());
+    let painted = display.poll().unwrap().unwrap();
+    assert_eq!(
+        (painted.width(), painted.height()),
+        (frame.width(), frame.height())
+    );
+    assert_eq!(painted.rgba(), frame.rgba());
+    writer.close().unwrap();
+    assert_eq!(display.poll().unwrap(), None);
+    assert!(display.closed());
+}
+
 // @internal — hand off only this hardware instance's prepared native resource.
 #[test]
 fn native_resource_wiring_preserves_identity_and_transfers_a_read_only_descriptor() {
