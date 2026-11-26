@@ -54,8 +54,23 @@ check:release-versions:
 lint:format:
   extends: [.linux-runner, .lint-format, .validation-rust, .timeout-quick]
 
+.camera-sdk:
+  before_script:
+    - |
+      pkg-config --atleast-version=0.3.77 libpipewire-0.3 ||
+        flock /tmp/vauchi-camera-sdk.lock sh -ec '
+          if ! pkg-config --atleast-version=0.3.77 libpipewire-0.3; then
+            sudo apt-get -o DPkg::Lock::Timeout=120 update -qq
+            sudo apt-get -o DPkg::Lock::Timeout=120 install -y -qq --no-install-recommends libpipewire-0.3-dev libclang-dev
+          fi
+          pkg-config --atleast-version=0.3.77 libpipewire-0.3
+        '
+
 lint:clippy:
   extends: [.linux-runner, .lint-clippy, .validation-rust, .timeout-cold-rebuild]
+  before_script:
+    - !reference [.self-hosted, before_script]
+    - !reference [.camera-sdk, before_script]
 
 # ADR-078 D-13: the app holds no behaviour. A match on a Command or an
 # Event anywhere but the wiring module is display or hardware work that
@@ -80,6 +95,7 @@ build:gvauchi:
   stage: build
   before_script:
     - !reference [.self-hosted, before_script]
+    - !reference [.camera-sdk, before_script]
   script:
     - cargo build --release --bins
   artifacts:
@@ -124,6 +140,7 @@ build:qvauchi:
   stage: build
   before_script:
     - !reference [.self-hosted, before_script]
+    - !reference [.camera-sdk, before_script]
   script:
     - cargo build --locked --release --no-default-features --features qt --bin qvauchi
   artifacts:
@@ -289,6 +306,7 @@ test:unit:
   stage: test
   before_script:
     - !reference [.self-hosted, before_script]
+    - !reference [.camera-sdk, before_script]
   script:
     - cargo nextest run --profile ci
   rules:
@@ -300,6 +318,7 @@ test:shared:
   stage: test
   before_script:
     - !reference [.self-hosted, before_script]
+    - !reference [.camera-sdk, before_script]
   script:
     - python3 ci/tests/registry-launch.test.py
     - bash ci/tests/headless-dependencies.test.sh
@@ -321,6 +340,7 @@ test:qt:
   stage: test
   before_script:
     - !reference [.self-hosted, before_script]
+    - !reference [.camera-sdk, before_script]
   script:
     - bash ci/tests/qt-dependencies.test.sh
     - if bash ci/tests/qt-dependencies.test.sh qt,gtk; then echo "FAIL — Qt graph guard accepted GTK"; exit 1; fi
@@ -363,6 +383,7 @@ package:deb:
     - apt-get install -y -qq devscripts debhelper
         libgtk-4-dev libadwaita-1-dev libqrencode-dev pkg-config
         libasound2-dev libdbus-1-dev libclang-dev libfontconfig1-dev
+        libpipewire-0.3-dev
         qt6-base-dev cmake g++
   script:
     # -d: debian/control's Build-Depends name Debian's cargo and rustc,
@@ -395,6 +416,7 @@ package:rpm:
     - dnf install -y rpm-build cargo rust gtk4-devel libadwaita-devel
         qrencode-devel pkgconfig alsa-lib-devel dbus-devel clang-devel
         fontconfig-devel qt6-qtbase-devel cmake gcc-c++
+        pipewire-devel
   script:
     - mkdir -p rpmbuild/{SOURCES,SPECS}
     # The tarball follows Cargo.toml; a spec Version that disagrees fails
@@ -460,6 +482,7 @@ build:terminal:
   stage: build
   before_script:
     - !reference [.self-hosted, before_script]
+    - !reference [.camera-sdk, before_script]
   script:
     - cargo build --release --locked --no-default-features --features cli,tui
         --bin vauchi --bin vauchi-tui

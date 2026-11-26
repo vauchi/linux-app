@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 Name:           gvauchi
-Version:        0.10.1
+Version:        0.11.0
 Release:        1%{?dist}
 Summary:        Privacy-focused updatable contact cards (GTK desktop)
 
@@ -14,6 +14,7 @@ BuildRequires:  cargo
 BuildRequires:  rust
 BuildRequires:  gtk4-devel
 BuildRequires:  alsa-lib-devel
+BuildRequires:  pkgconfig(libpipewire-0.3) >= 0.3.77
 BuildRequires:  dbus-devel
 BuildRequires:  clang-devel
 BuildRequires:  fontconfig-devel
@@ -64,6 +65,9 @@ install -m 644 data/fonts/*.ttf %{buildroot}%{_datadir}/fonts/vauchi/
 %{_datadir}/fonts/vauchi/
 
 %changelog
+* Thu Nov 26 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.11.0-1
+- Add PipeWire camera capture and live QR preview with portal remote handoff
+
 * Thu Nov 05 2026 Mattia Egloff <mattia.egloff@pm.me> - 0.10.1-1
 - Align package metadata with the app and consume GTK v0.10.0
 

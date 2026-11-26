@@ -77,6 +77,10 @@ skip = [
     "darling_macro",
     "getrandom",
     "hashbrown",
+    # PipeWire's build-time bindgen/cexpr use the older parser versions;
+    # the decoder and other build tools require the newer major versions.
+    { name = "itertools", version = "=0.13.0" },
+    { name = "nom", version = "=7.1.3" },
     "linux-raw-sys",
     "miniz_oxide",
     "rand_chacha",

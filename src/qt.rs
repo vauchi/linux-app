@@ -68,13 +68,14 @@ pub fn run<E: CommandEngine + 'static>(
     args: &[String],
     bridge: HardwareBridge<E>,
 ) -> Result<i32, QtHostError> {
+    let preview_resolver = crate::camera_preview::qt_resolver(bridge.preview_directory());
     let host = Rc::new(RefCell::new(QtHost::new(bridge)?));
     let failure = Rc::new(Cell::new(None));
     let events = host.clone();
     let event_failure = failure.clone();
     let ticks = host.clone();
     let tick_failure = failure.clone();
-    let exit = qt_display::run_with_poll(
+    let exit = qt_display::run_with_camera(
         args,
         Box::new(move |json| {
             if event_failure.get().is_some() {
@@ -100,6 +101,7 @@ pub fn run<E: CommandEngine + 'static>(
                 qt_display::stop();
             }
         }),
+        preview_resolver,
     );
     failure.get().map_or(Ok(exit), Err)
 }

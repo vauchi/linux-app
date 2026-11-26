@@ -3,7 +3,7 @@
 
 [package]
 name = "vauchi-linux-app"
-version = "0.10.1"
+version = "0.11.0"
 edition = "2024"
 rust-version = "1.93"
 license = "GPL-3.0-or-later"
@@ -56,11 +56,12 @@ vauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.10
 gtk4 = { version = "0.9", optional = true }
 # The catalog renderer's window chrome; the version gtk-display links.
 libadwaita = { version = "0.7", features = ["v1_4"], optional = true }
-vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", tag = "v0.103.0", version = "=0.103.0", features = ["audio", "camera", "mdns"] }
+# Draft assembly uses immutable SDK commits until their release tags exist.
+vauchi-linux-hw = { git = "https://gitlab.com/vauchi/linux-hw.git", rev = "8befb3b7648393bc35323b15c86cefdd667ed2f8", version = "=0.104.0", features = ["audio", "mdns"] }
 # The GTK display shell, repository `gtk-display` since 2026-11-11; its
 # crate is still `vauchi-gtk` (ADR-078 step 4).
-gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", tag = "v0.14.0", version = "=0.14.0", optional = true }
-qt-display = { git = "https://gitlab.com/vauchi/qt-display.git", tag = "v0.1.5", version = "=0.1.5", optional = true }
+gtk-display = { package = "vauchi-gtk", git = "https://gitlab.com/vauchi/gtk-display.git", rev = "06661f936f81d1e71d0aeb92818b79357c5c2210", version = "=0.15.0", optional = true }
+qt-display = { git = "https://gitlab.com/vauchi/qt-display.git", rev = "3bc567f4e23cec3af5ee170e55197149baba1011", version = "=0.2.0", optional = true }
 serde_json = "1"
 cli-display = { package = "vauchi-cli-display", git = "https://gitlab.com/vauchi/cli-display.git", tag = "v0.1.8", version = "=0.3.0", optional = true }
 rustix = { version = "1.1", features = ["event", "termios"], optional = true }
@@ -127,3 +128,4 @@ rqrr = { git = "https://gitlab.com/vauchi/utils/rqrr.git", tag = "v0.11.0+vauchi
 dbg_macro = "deny"
 todo = "deny"
 unimplemented = "deny"
+

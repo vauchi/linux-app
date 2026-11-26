@@ -4,6 +4,7 @@
 //! and a display shell into one binary per pairing. Its wiring lives in
 //! [`wiring`], with the engine newtype, the locale report and the storage
 //! set-up beside it; nothing here decides behaviour (D-13).
+mod camera_preview;
 pub mod engine;
 pub mod locale;
 #[cfg(feature = "qt")]

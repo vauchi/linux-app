@@ -1,3 +1,10 @@
+gvauchi (0.11.0-1) unstable; urgency=medium
+
+  * Add PipeWire camera capture and live QR preview in GTK and Qt.
+  * Hand portal-authorized camera remotes to preview renderers.
+
+ -- Mattia Egloff <mattia.egloff@pm.me>  Thu, 26 Nov 2026 08:00:00 +0100
+
 gvauchi (0.10.1-1) unstable; urgency=medium
 
   * Align Debian and RPM metadata with the app release version.

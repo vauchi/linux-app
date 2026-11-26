@@ -19,6 +19,7 @@ finish-args:
   - --system-talk-name=org.bluez
   - --talk-name=org.freedesktop.secrets
   - --talk-name=org.freedesktop.Notifications
+  - --add-policy=entitlement.grant=org.freedesktop.portal.Camera
 
 build-options:
   append-path: /usr/lib/sdk/rust-stable/bin
