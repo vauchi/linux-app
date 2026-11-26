@@ -29,6 +29,8 @@ BuildRequires:  qrencode-devel
 BuildRequires:  pkgconfig
 
 Requires:       qt6-qtbase
+Requires:       pipewire >= 0.3.77
+Recommends:     wireplumber
 Requires:       qrencode-libs
 Conflicts:      gvauchi
 Obsoletes:      vauchi-qt < 0.6.0

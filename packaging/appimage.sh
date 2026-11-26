@@ -25,12 +25,14 @@ cp data/app.vauchi.Vauchi.svg \
   "${APPDIR}/usr/share/icons/hicolor/scalable/apps/app.vauchi.Vauchi.svg"
 
 export DEPLOY_GTK_VERSION=4
+# PipeWire dynamically loads host modules; its client library must match them.
 linuxdeploy --appdir "$APPDIR" \
+  --exclude-library 'libpipewire-0.3.so*' \
   --desktop-file "${APPDIR}/usr/share/applications/app.vauchi.Vauchi.desktop" \
   --icon-file "${APPDIR}/usr/share/icons/hicolor/scalable/apps/app.vauchi.Vauchi.svg" \
   --plugin gtk \
   --output appimage
 
-mv Vauchi*.AppImage "gvauchi-${VERSION}-x86_64.AppImage" 2>/dev/null \
-  || mv *.AppImage "gvauchi-${VERSION}-x86_64.AppImage"
+mv ./Vauchi*.AppImage "gvauchi-${VERSION}-x86_64.AppImage" 2>/dev/null \
+  || mv ./*.AppImage "gvauchi-${VERSION}-x86_64.AppImage"
 echo "Done: Built gvauchi-${VERSION}-x86_64.AppImage"

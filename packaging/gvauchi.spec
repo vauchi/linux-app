@@ -23,6 +23,8 @@ BuildRequires:  qrencode-devel
 BuildRequires:  pkgconfig
 
 Requires:       gtk4
+Requires:       pipewire >= 0.3.77
+Recommends:     wireplumber
 Conflicts:      qvauchi
 Obsoletes:      vauchi-gtk < 0.8.0
 Provides:       vauchi-gtk = %{version}-%{release}
