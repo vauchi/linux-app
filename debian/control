@@ -12,6 +12,7 @@ Build-Depends: debhelper-compat (= 13),
                libasound2-dev,
                libpipewire-0.3-dev (>= 0.3.77),
                libdbus-1-dev,
+               dbus-daemon,
                libclang-dev,
                libadwaita-1-dev,
                libqrencode-dev,
@@ -20,6 +21,8 @@ Build-Depends: debhelper-compat (= 13),
                qt6-base-dev,
                cmake,
                g++,
+               xvfb,
+               xauth,
                pkg-config
 Standards-Version: 4.6.2
 Homepage: https://vauchi.app

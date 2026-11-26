@@ -23,10 +23,13 @@ BuildRequires:  gcc-c++
 BuildRequires:  alsa-lib-devel
 BuildRequires:  pkgconfig(libpipewire-0.3) >= 0.3.77
 BuildRequires:  dbus-devel
+BuildRequires:  dbus-daemon
 BuildRequires:  clang-devel
 BuildRequires:  fontconfig-devel
 BuildRequires:  qrencode-devel
 BuildRequires:  pkgconfig
+BuildRequires:  xorg-x11-server-Xvfb
+BuildRequires:  xorg-x11-xauth
 
 Requires:       qt6-qtbase
 Requires:       pipewire >= 0.3.77

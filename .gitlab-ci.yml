@@ -395,7 +395,7 @@ package:deb:
         libgtk-4-dev libadwaita-1-dev libqrencode-dev pkg-config
         libasound2-dev libdbus-1-dev libclang-dev libfontconfig1-dev
         libpipewire-0.3-dev
-        qt6-base-dev cmake g++
+        qt6-base-dev cmake g++ xvfb xauth dbus-daemon
   script:
     # -d: debian/control's Build-Depends name Debian's cargo and rustc,
     # which this image replaces with the pinned toolchain.
@@ -427,7 +427,7 @@ package:rpm:
     - dnf install -y rpm-build cargo rust gtk4-devel libadwaita-devel
         qrencode-devel pkgconfig alsa-lib-devel dbus-devel clang-devel
         fontconfig-devel qt6-qtbase-devel cmake gcc-c++
-        pipewire-devel
+        pipewire-devel xorg-x11-server-Xvfb xorg-x11-xauth dbus-daemon
   script:
     - mkdir -p rpmbuild/{SOURCES,SPECS}
     # The tarball follows Cargo.toml; a spec Version that disagrees fails
