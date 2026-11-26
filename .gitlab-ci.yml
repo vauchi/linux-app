@@ -144,7 +144,7 @@ build:qvauchi:
     - !reference [.self-hosted, before_script]
     - !reference [.camera-sdk, before_script]
   script:
-    - cargo build --locked --release --no-default-features --features qt --bin qvauchi
+    - cargo build --locked --release --no-default-features --features qt,camera-pipewire --bin qvauchi
   artifacts:
     paths:
       - target/release/qvauchi
@@ -332,6 +332,9 @@ test:shared:
     - !reference [.camera-sdk, before_script]
   script:
     - python3 ci/tests/registry-launch.test.py
+    - bash ci/tests/camera-dependencies.test.sh gtk
+    - bash ci/tests/camera-dependencies.test.sh qt
+    - if bash ci/tests/camera-dependencies.test.sh gtk,camera-pipewire; then echo "FAIL — camera graph guard accepted PipeWire"; exit 1; fi
     - bash ci/tests/headless-dependencies.test.sh
     - bash ci/tests/headless-dependencies.test.sh cli
     - bash ci/tests/headless-dependencies.test.sh tui
@@ -357,7 +360,8 @@ test:qt:
     - if bash ci/tests/qt-dependencies.test.sh qt,gtk; then echo "FAIL — Qt graph guard accepted GTK"; exit 1; fi
     - if bash ci/tests/qt-dependencies.test.sh ''; then echo "FAIL — Qt graph guard accepted missing display"; exit 1; fi
     - cargo test --locked --no-default-features --features qt --all-targets
-    - cargo clippy --locked --no-default-features --features qt --all-targets -- -D warnings
+    - cargo test --locked --no-default-features --features qt,camera-pipewire --all-targets
+    - cargo clippy --locked --no-default-features --features qt,camera-pipewire --all-targets -- -D warnings
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

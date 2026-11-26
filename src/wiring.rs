@@ -56,6 +56,7 @@ impl<E: CommandEngine> HardwareBridge<E> {
         std::mem::take(&mut self.commands)
     }
 
+    #[cfg(feature = "camera-pipewire")]
     pub fn preview_directory(&self) -> Option<vauchi_linux_hw::preview_source::PreviewDirectory> {
         self.hardware.preview_directory()
     }
@@ -239,6 +240,7 @@ impl<E: CommandEngine + 'static> BridgeEngine<E> {
     }
 
     pub fn new(engine: E, hardware: LinuxHardware) -> Result<Rc<Self>, ExecuteError> {
+        #[cfg(feature = "camera-pipewire")]
         crate::camera_preview::install_gtk(hardware.preview_directory());
         let mut bridge = HardwareBridge::new(engine, hardware)?;
         // The constructor routed Core's boot projection once for its

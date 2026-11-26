@@ -32,8 +32,8 @@ Rules-Requires-Root: no
 
 Package: gvauchi
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, pipewire (>= 0.3.77)
-Recommends: wireplumber
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: pipewire (>= 0.3.77), wireplumber
 Conflicts: qvauchi
 Replaces: vauchi-gtk
 Breaks: vauchi-gtk
@@ -46,8 +46,8 @@ Description: Privacy-focused updatable contact cards (GTK desktop)
 
 Package: qvauchi
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, pipewire (>= 0.3.77)
-Recommends: wireplumber
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: pipewire (>= 0.3.77), wireplumber
 Conflicts: gvauchi
 Replaces: vauchi-qt
 Breaks: vauchi-qt

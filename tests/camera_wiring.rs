@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#![cfg(feature = "camera-pipewire")]
+
 use std::sync::Arc;
 use vauchi_contract::{Command, Event};
 use vauchi_linux_app::{engine::CommandEngine, wiring::HardwareBridge};

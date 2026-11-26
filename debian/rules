@@ -11,7 +11,7 @@ export CARGO_HOME = $(CURDIR)/debian/.cargo
 # The Qt binary builds without the GTK feature, as test:qt requires.
 override_dh_auto_build:
 	cargo build --release --bin gvauchi
-	cargo build --release --no-default-features --features qt --bin qvauchi
+	cargo build --release --no-default-features --features qt,camera-pipewire --bin qvauchi
 
 override_dh_auto_install:
 	install -Dm 755 target/release/gvauchi \

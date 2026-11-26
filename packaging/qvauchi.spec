@@ -32,7 +32,7 @@ BuildRequires:  xorg-x11-server-Xvfb
 BuildRequires:  xorg-x11-xauth
 
 Requires:       qt6-qtbase
-Requires:       pipewire >= 0.3.77
+Recommends:     pipewire >= 0.3.77
 Recommends:     wireplumber
 Requires:       qrencode-libs
 Conflicts:      gvauchi
@@ -50,7 +50,7 @@ share one data directory.
 %autosetup
 
 %build
-cargo build --release --no-default-features --features qt --bin qvauchi
+cargo build --release --no-default-features --features qt,camera-pipewire --bin qvauchi
 
 %install
 install -Dm 755 target/release/qvauchi \
