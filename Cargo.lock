@@ -2627,7 +2627,7 @@ checksum = "d68782463e408eb1e668cf6152704bd856c78c5b6417adaee3203d8f4c1fc9ec"
 [[package]]
 name = "qt-display"
 version = "0.2.0"
-source = "git+https://gitlab.com/vauchi/qt-display.git?rev=3bc567f4e23cec3af5ee170e55197149baba1011#3bc567f4e23cec3af5ee170e55197149baba1011"
+source = "git+https://gitlab.com/vauchi/qt-display.git?rev=61f5d4f588c56ce991384eca6d91a876cfecfaa8#61f5d4f588c56ce991384eca6d91a876cfecfaa8"
 dependencies = [
  "cmake",
 ]
@@ -3838,7 +3838,7 @@ dependencies = [
 [[package]]
 name = "vauchi-gtk"
 version = "0.15.0"
-source = "git+https://gitlab.com/vauchi/gtk-display.git?rev=06661f936f81d1e71d0aeb92818b79357c5c2210#06661f936f81d1e71d0aeb92818b79357c5c2210"
+source = "git+https://gitlab.com/vauchi/gtk-display.git?rev=b03f752778143eff4eed1aecc7108d1fec4c5fbb#b03f752778143eff4eed1aecc7108d1fec4c5fbb"
 dependencies = [
  "glib-build-tools",
  "gtk4",
@@ -3877,7 +3877,7 @@ dependencies = [
 [[package]]
 name = "vauchi-linux-hw"
 version = "0.104.0"
-source = "git+https://gitlab.com/vauchi/linux-hw.git?rev=8befb3b7648393bc35323b15c86cefdd667ed2f8#8befb3b7648393bc35323b15c86cefdd667ed2f8"
+source = "git+https://gitlab.com/vauchi/linux-hw.git?rev=744314e986ceefd835426f17e3932b0becbc7ea6#744314e986ceefd835426f17e3932b0becbc7ea6"
 dependencies = [
  "alsa",
  "futures-util",

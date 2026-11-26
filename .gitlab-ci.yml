@@ -57,14 +57,14 @@ lint:format:
 .camera-sdk:
   before_script:
     - |
-      pkg-config --atleast-version=0.3.77 libpipewire-0.3 ||
-        flock /tmp/vauchi-camera-sdk.lock sh -ec '
-          if ! pkg-config --atleast-version=0.3.77 libpipewire-0.3; then
-            sudo apt-get -o DPkg::Lock::Timeout=120 update -qq
-            sudo apt-get -o DPkg::Lock::Timeout=120 install -y -qq --no-install-recommends libpipewire-0.3-dev libclang-dev
-          fi
-          pkg-config --atleast-version=0.3.77 libpipewire-0.3
-        '
+      if ! pkg-config --atleast-version=0.3.77 libpipewire-0.3; then
+        curl --fail-with-body --silent --show-error --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+          "${CI_API_V4_URL}/projects/vauchi%2Fscripts/repository/files/scripts%2Fci%2Fprepare-pipewire-sdk.sh/raw?ref=c8decece5226d8981ce3cfb61ec33c4be0d0366b" \
+          -o .prepare-pipewire-sdk.sh
+        bash .prepare-pipewire-sdk.sh "${CI_PROJECT_DIR}/.camera-sdk"
+        . "${CI_PROJECT_DIR}/.camera-sdk/env.sh"
+      fi
+      pkg-config --atleast-version=0.3.77 libpipewire-0.3
 
 lint:clippy:
   extends: [.linux-runner, .lint-clippy, .validation-rust, .timeout-cold-rebuild]
@@ -117,6 +117,8 @@ build:gvauchi:
 # linux-gtk. run-tests.sh takes a free display (xvfb-run -a); the resource
 # group keeps this repo's Xvfb jobs off the shared runner one at a time.
 test:a11y:
+  before_script:
+    - !reference [.camera-sdk, before_script]
   stage: test
   needs:
     - job: build:gvauchi
@@ -155,6 +157,8 @@ build:qvauchi:
 # before the legacy Qt app goes (private#1029, copy first, delete last).
 # The renderer probe stays in qt-display: it runs on the library alone.
 test:a11y-qt:
+  before_script:
+    - !reference [.camera-sdk, before_script]
   stage: test
   needs:
     - job: build:qvauchi
@@ -173,6 +177,8 @@ test:a11y-qt:
 # baselines while qt-display still uploads "linux-qt". Advisory until
 # references are reviewed: Contacts and My Card draw a per-run identity.
 test:snapshots-qt:
+  before_script:
+    - !reference [.camera-sdk, before_script]
   allow_failure: true
   stage: test
   needs:
@@ -204,6 +210,8 @@ test:snapshots-qt:
 # 2026-11-03: its own baselines while linux-gtk still uploads "linux-gtk";
 # ADR-078 step 4d.4, copy first).
 test:snapshots:
+  before_script:
+    - !reference [.camera-sdk, before_script]
   allow_failure: true
   stage: test
   needs:
@@ -232,6 +240,8 @@ test:snapshots:
 
 # Manual snapshot regeneration: Run pipeline with REGENERATE_SNAPSHOTS=1.
 test:snapshots:record:
+  before_script:
+    - !reference [.camera-sdk, before_script]
   stage: test
   needs:
     - job: build:gvauchi
@@ -270,6 +280,7 @@ test:screen-catalog:
   before_script:
     - !reference [.self-hosted, before_script]
     - !reference [.clone-themes, before_script]
+    - !reference [.camera-sdk, before_script]
   script:
     - mkdir -p "$CATALOG_OUT_DIR" build
     - |
