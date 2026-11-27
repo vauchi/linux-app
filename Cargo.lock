@@ -2745,7 +2745,7 @@ checksum = "d68782463e408eb1e668cf6152704bd856c78c5b6417adaee3203d8f4c1fc9ec"
 [[package]]
 name = "qt-display"
 version = "0.3.0"
-source = "git+https://gitlab.com/vauchi/qt-display.git?rev=aae27bde56d8c0cfdb8377ac2a06776e9ee1385d#aae27bde56d8c0cfdb8377ac2a06776e9ee1385d"
+source = "git+https://gitlab.com/vauchi/qt-display.git?tag=v0.3.0#aae27bde56d8c0cfdb8377ac2a06776e9ee1385d"
 dependencies = [
  "cmake",
 ]
@@ -3511,7 +3511,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix 1.1.6",
  "windows-sys 0.61.2",
@@ -3991,7 +3991,7 @@ dependencies = [
 [[package]]
 name = "vauchi-gtk"
 version = "0.16.0"
-source = "git+https://gitlab.com/vauchi/gtk-display.git?rev=6b8950cc41a455f62f1daaa4cabd1553234e2437#6b8950cc41a455f62f1daaa4cabd1553234e2437"
+source = "git+https://gitlab.com/vauchi/gtk-display.git?tag=v0.16.0#6b8950cc41a455f62f1daaa4cabd1553234e2437"
 dependencies = [
  "glib-build-tools",
  "gtk4",
@@ -4030,7 +4030,7 @@ dependencies = [
 [[package]]
 name = "vauchi-linux-hw"
 version = "0.105.0"
-source = "git+https://gitlab.com/vauchi/linux-hw.git?rev=97e656c3963db86744de2c868e658cb6b10b78a7#97e656c3963db86744de2c868e658cb6b10b78a7"
+source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.105.0#97e656c3963db86744de2c868e658cb6b10b78a7"
 dependencies = [
  "alsa",
  "futures-util",
