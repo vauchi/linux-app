@@ -3511,7 +3511,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.6",
  "windows-sys 0.61.2",
@@ -3924,22 +3924,11 @@ dependencies = [
 
 [[package]]
 name = "vauchi-cli-display"
-version = "0.3.0"
-source = "git+https://gitlab.com/vauchi/cli-display.git?tag=v0.1.8#87e6b07f241b6137b18d6e073b79466844bf2085"
+version = "0.4.0"
+source = "git+https://gitlab.com/vauchi/cli-display.git?tag=v0.1.9#4d8e99cc7ce0724f612667d7d8b1883f0e85f0cc"
 dependencies = [
  "console",
- "vauchi-contract 0.101.0",
-]
-
-[[package]]
-name = "vauchi-contract"
-version = "0.101.0"
-source = "git+https://gitlab.com/vauchi/contract.git?tag=v0.101.0#b73800c00602fef938445f0e08e70d048929bee6"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror",
- "zeroize",
+ "vauchi-contract",
 ]
 
 [[package]]
@@ -3991,7 +3980,7 @@ dependencies = [
  "ureq",
  "url",
  "uuid",
- "vauchi-contract 0.102.0",
+ "vauchi-contract",
  "vauchi-protocol",
  "webpki-roots",
  "winapi-util",
@@ -4001,8 +3990,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-gtk"
-version = "0.16.0"
-source = "git+https://gitlab.com/vauchi/gtk-display.git?tag=v0.16.0#6b8950cc41a455f62f1daaa4cabd1553234e2437"
+version = "0.17.0"
+source = "git+https://gitlab.com/vauchi/gtk-display.git?tag=v0.17.0#9dd59db543e919ab5bb2b546fd40dd50fcc6a29c"
 dependencies = [
  "glib-build-tools",
  "gtk4",
@@ -4010,7 +3999,7 @@ dependencies = [
  "pipewire",
  "qrcode",
  "serde_json",
- "vauchi-contract 0.101.0",
+ "vauchi-contract",
  "yeslogic-fontconfig-sys",
 ]
 
@@ -4031,7 +4020,7 @@ dependencies = [
  "tempfile",
  "vauchi-app",
  "vauchi-cli-display",
- "vauchi-contract 0.102.0",
+ "vauchi-contract",
  "vauchi-core",
  "vauchi-gtk",
  "vauchi-linux-hw",
@@ -4040,8 +4029,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-linux-hw"
-version = "0.105.0"
-source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.105.0#97e656c3963db86744de2c868e658cb6b10b78a7"
+version = "0.106.0"
+source = "git+https://gitlab.com/vauchi/linux-hw.git?tag=v0.106.0#a3d6596587c0304be521211c4f433fe164050ad8"
 dependencies = [
  "alsa",
  "futures-util",
@@ -4059,7 +4048,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "uuid",
- "vauchi-contract 0.101.0",
+ "vauchi-contract",
  "zbus",
 ]
 
@@ -4075,8 +4064,8 @@ dependencies = [
 
 [[package]]
 name = "vauchi-tui-display"
-version = "0.6.0"
-source = "git+https://gitlab.com/vauchi/tui-display.git?tag=v0.6.0#6d7090d0a39f1ebaba40974550d019c080c49e34"
+version = "0.7.0"
+source = "git+https://gitlab.com/vauchi/tui-display.git?tag=v0.7.0#ce6669cabb9b8240c52b2236817824134143e17d"
 dependencies = [
  "anyhow",
  "crossterm",
@@ -4084,7 +4073,7 @@ dependencies = [
  "ratatui-widgets",
  "serde",
  "serde_json",
- "vauchi-contract 0.101.0",
+ "vauchi-contract",
 ]
 
 [[package]]
